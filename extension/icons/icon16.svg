@@ -1,0 +1,19 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient - premium feel -->
+  <defs>
+    <linearGradient id="grad16" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6366F1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="16" height="16" rx="4" fill="url(#grad16)"/>
+
+  <!-- Camera body - clean geometric shape -->
+  <rect x="3" y="5" width="10" height="6" rx="1.5" fill="white" opacity="0.95"/>
+
+  <!-- Lens - focal point, draws attention -->
+  <circle cx="8" cy="8" r="2" fill="#6366F1"/>
+
+  <!-- Flash/snap element - conveys speed & action -->
+  <path d="M11 3L12 5L10 5Z" fill="#22D3EE"/>
+</svg>
