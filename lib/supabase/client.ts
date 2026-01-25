@@ -1,20 +1,16 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { DatabaseSnapshot, NormalizedSnapshot, RawSnapshot } from '../types'
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_URL')
-}
-
-if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY')
-}
-
 /**
- * Create Supabase client
+ * Create Supabase client (lazy initialization to avoid build-time errors)
  */
 export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) {
+    throw new Error('Missing Supabase environment variables')
+  }
 
   return createSupabaseClient(url, key)
 }
