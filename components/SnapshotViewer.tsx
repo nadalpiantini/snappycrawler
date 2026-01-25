@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { ChevronDown, ChevronRight, FileJson } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { normalizeSnapshot, sanitizeSnapshot } from '@/lib/normalizer'
+import { normalizeSnapshot } from '@/lib/normalizer'
+import { sanitizeSnapshot } from '@/lib/legal-safe'
 import { RawSnapshot, NormalizedSnapshot } from '@/lib/types'
 
 interface SnapshotViewerProps {
@@ -15,8 +16,8 @@ export function SnapshotViewer({ snapshot }: SnapshotViewerProps) {
   const [view, setView] = useState<'raw' | 'normalized' | 'legal'>('raw')
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['meta']))
 
-  const normalized = normalize(snapshot)
-  const legalSafe = sanitize(normalized)
+  const normalized = normalizeSnapshot(snapshot)
+  const legalSafe = sanitizeSnapshot(normalized)
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => {
@@ -30,7 +31,7 @@ export function SnapshotViewer({ snapshot }: SnapshotViewerProps) {
     })
   }
 
-  const renderValue = (value: any, depth = 0): JSX.Element => {
+  const renderValue = (value: any, depth = 0): React.ReactElement => {
     if (value === null) return <span className="text-muted-foreground">null</span>
     if (value === undefined) return <span className="text-muted-foreground">undefined</span>
     if (typeof value === 'boolean') return <span className="text-blue-500">{String(value)}</span>

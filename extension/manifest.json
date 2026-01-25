@@ -5,7 +5,8 @@
   "description": "Export HTML, visible text, and UX flows from any webpage to JSON",
   "permissions": ["activeTab", "downloads", "scripting"],
   "action": {
-    "default_title": "Export Snappy Snapshot",
+    "default_popup": "crawler.html",
+    "default_title": "Snappy Crawler",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

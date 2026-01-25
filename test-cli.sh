@@ -1,0 +1,25 @@
+#!/bin/bash
+# 🧪 Test rápido del CLI de Snappy
+
+echo "🧪 SNAPPY CLI - Test"
+echo ""
+echo "Asegúrate que el servidor esté corriendo en otra terminal:"
+echo "  cd /Users/nadalpiantini/Dev/snappy-platform"
+echo "  pnpm dev"
+echo ""
+echo ""
+echo "📸 TEST 1: Export rápido (1 página)"
+echo "  pnpm snappy export google.com"
+echo ""
+echo "📸 TEST 2: Auditoría de 1 página"
+echo "  pnpm snappy audit example.com"
+echo ""
+echo "📸 TEST 3: Crawl pequeño (5 páginas)"
+echo "  pnpm snappy crawl example.com --max-pages=5"
+echo ""
+echo ""
+echo "✅ Después de cada test, revisa:"
+echo "  1. Terminal: Verás el reporte colorido"
+echo "  2. Web app: http://localhost:3000"
+echo ""
+

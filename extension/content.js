@@ -1,5 +1,5 @@
 // ============================================
-// SNAPPY v2.0 - Page Snapshot Exporter (DEBUG)
+// SNAPPY v2.0 - Page Snapshot Exporter
 // ============================================
 
 console.log('📸 Snappy: Service worker loaded')
@@ -7,7 +7,6 @@ console.log('📸 Snappy: Service worker loaded')
 // Attach UX listeners on first load
 function attachUXListeners() {
   if (window.__SNAPPY_ATTACHED__) {
-    console.log('📸 Snappy: UX listeners already attached')
     return
   }
 
@@ -44,20 +43,9 @@ function attachUXListeners() {
   console.log('📸 Snappy: UX tracking enabled')
 }
 
-// Test function - simple alert
-function testPageAccess() {
-  alert('✅ Snappy tiene acceso a esta página!')
-  return {
-    url: location.href,
-    title: document.title,
-    success: true
-  }
-}
-
 // Main capture function
 chrome.action.onClicked.addListener(async (tab) => {
   console.log('📸 Snappy: Icon clicked', tab.id)
-  console.log('📸 Snappy: Tab URL', tab.url)
 
   if (!tab.id) {
     console.error('📸 Snappy: No tab ID')
@@ -65,43 +53,38 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 
   // Check if URL is accessible
-  if (tab.url.startsWith('chrome://')) {
-    console.error('❌ No se puede usar en chrome:// URLs')
-    alert('❌ Snappy no funciona en páginas chrome://\n\nAbre una página web normal (google.com, localhost:3000, etc.)')
+  if (tab.url && (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://'))) {
+    console.error('❌ Cannot access chrome:// URLs')
+    // Show error badge
+    chrome.action.setIcon({
+      path: {
+        '16': 'icons/icon16.png',
+        '48': 'icons/icon48.png',
+        '128': 'icons/icon128.png'
+      },
+      tabId: tab.id
+    })
+    chrome.action.setTitle({
+      title: '❌ Cannot access chrome:// pages. Use on a normal website.',
+      tabId: tab.id
+    })
     return
   }
 
   try {
-    // First, test with a simple function
-    console.log('📸 Snappy: Testing page access...')
-    const testResults = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: testPageAccess
-    })
-
-    console.log('📸 Snappy: Test results', testResults)
-
-    if (!testResults || !testResults[0]) {
-      throw new Error('Test failed - no results')
-    }
-
     // Inject UX tracking
-    console.log('📸 Snappy: Injecting UX listeners...')
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: attachUXListeners
     })
 
-    // Wait a bit
-    await new Promise(resolve => setTimeout(resolve, 200))
+    // Wait a bit for listeners to attach
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     // Capture snapshot
-    console.log('📸 Snappy: Capturing snapshot...')
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
-        console.log('📸 Snappy: Inside page context')
-
         try {
           // Extract visible text (leaf nodes only)
           const visibleText = Array.from(document.querySelectorAll("body *"))
@@ -128,10 +111,8 @@ chrome.action.onClicked.addListener(async (tab) => {
             }
           }
 
-          console.log('📸 Snappy: Snapshot captured', snapshot)
           return snapshot
         } catch (err) {
-          console.error('📸 Snappy: Error in page context', err)
           return { error: err.message }
         }
       }
@@ -147,28 +128,59 @@ chrome.action.onClicked.addListener(async (tab) => {
       throw new Error(result.error)
     }
 
-    // Create JSON blob
+    // Create JSON blob and convert to data URL (service worker compatible)
     const jsonStr = JSON.stringify(result, null, 2)
     const blob = new Blob([jsonStr], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
+
+    // Convert blob to data URL (base64) for service worker
+    const reader = new FileReader()
+    const dataUrl = await new Promise<string>((resolve) => {
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => resolve('data:application/json,{}')
+      reader.readAsDataURL(blob)
+    })
 
     // Extract hostname for filename
     const hostname = new URL(result.url).hostname.replace(/^www\./, '')
 
-    console.log('📸 Snappy: Downloading snapshot...')
-    console.log('📸 Snappy: Snapshot size:', jsonStr.length, 'bytes')
-
     // Download snapshot
     await chrome.downloads.download({
-      url,
+      url: dataUrl,
       filename: `snappy-${hostname}-${Date.now()}.json`,
-      saveAs: true
+      saveAs: false // Auto-download without prompt
+    })
+
+    // Show success badge
+    chrome.action.setTitle({
+      title: '✅ Snapshot captured!',
+      tabId: tab.id
     })
 
     console.log('📸 Snappy: Snapshot captured successfully!')
-    alert(`✅ Snapshot capturado!\n\nURL: ${result.url}\nTamaño: ${jsonStr.length} bytes`)
+
+    // Reset badge after 3 seconds
+    setTimeout(() => {
+      chrome.action.setTitle({
+        title: 'Snappy - Page Snapshot Exporter',
+        tabId: tab.id
+      })
+    }, 3000)
+
   } catch (error) {
     console.error('📸 Snappy: Capture failed', error)
-    alert(`❌ Error: ${error.message}\n\nRevisa la consola (F12) para más detalles.`)
+
+    // Show error badge
+    chrome.action.setTitle({
+      title: `❌ Error: ${error.message}`,
+      tabId: tab.id
+    })
+
+    // Reset after 3 seconds
+    setTimeout(() => {
+      chrome.action.setTitle({
+        title: 'Snappy - Page Snapshot Exporter',
+        tabId: tab.id
+      })
+    }, 3000)
   }
 })

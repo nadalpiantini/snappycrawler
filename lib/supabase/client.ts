@@ -23,9 +23,9 @@ export function createClient() {
  * Snapshot service for database operations
  */
 export class SnapshotService {
-  private supabase: ReturnType<typeof createSupabaseClient>
+  private supabase: ReturnType<typeof createClient>
 
-  constructor(client?: ReturnType<typeof createSupabaseClient>) {
+  constructor(client?: ReturnType<typeof createClient>) {
     this.supabase = client || createClient()
   }
 

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      width: 400px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+      color: white;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .input-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      opacity: 0.9;
+    }
+    input[type="url"] {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.95);
+      color: #1f2937;
+    }
+    input:focus {
+      outline: 2px solid rgba(255,255,255,0.5);
+    }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .option {
+      background: rgba(255,255,255,0.1);
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .option label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin: 0;
+      cursor: pointer;
+    }
+    .option input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .buttons {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    #startBtn {
+      background: white;
+      color: #8B5CF6;
+    }
+    #startBtn:hover:not(:disabled) {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    #startBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #stopBtn {
+      background: rgba(220, 38, 38, 0.9);
+      color: white;
+      display: none;
+    }
+    #stopBtn:hover {
+      background: rgba(185, 28, 28, 0.9);
+    }
+    .progress {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+    .progress.active {
+      display: block;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .stat-label { opacity: 0.8; }
+    .stat-value { font-weight: 600; }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #22D3EE;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .log {
+      margin-top: 8px;
+      padding: 8px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: monospace;
+      max-height: 100px;
+      overflow-y: auto;
+      display: none;
+    }
+    .log.active {
+      display: block;
+    }
+    .log-entry {
+      padding: 2px 0;
+      opacity: 0.8;
+    }
+    .log-entry.error { color: #fca5a5; }
+    .log-entry.success { color: #86efac; }
+  </style>
+</head>
+<body>
+  <h1>🕷️ Snappy Crawler</h1>
+
+  <div class="input-group">
+    <label for="domain">Domain to crawl:</label>
+    <input type="url" id="domain" placeholder="yamdu.com" value="">
+  </div>
+
+  <div class="options">
+    <div class="option">
+      <label>
+        <input type="checkbox" id="maxPages" checked>
+        Max pages: <input type="number" id="maxPagesValue" value="50" min="1" max="500" style="width: 50px;">
+      </label>
+    </div>
+    <div class="option">
+      <label>
+        <input type="checkbox" id="sameDomain" checked>
+        Same domain only
+      </label>
+    </div>
+    <div class="option">
+      <label>
+        <input type="checkbox" id="saveToDb" checked>
+        Save to Snappy DB
+      </label>
+    </div>
+    <div class="option">
+      <label>
+        <input type="checkbox" id="downloadFiles">
+        Download JSON files
+      </label>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button id="startBtn">▶️ Start Crawling</button>
+    <button id="stopBtn">⏹️ Stop</button>
+  </div>
+
+  <div id="progress" class="progress">
+    <div class="stat">
+      <span class="stat-label">Status:</span>
+      <span class="stat-value" id="status">Ready</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Pages:</span>
+      <span class="stat-value"><span id="captured">0</span> / <span id="total">0</span></span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Success:</span>
+      <span class="stat-value" id="success">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Errors:</span>
+      <span class="stat-value" id="errors">0</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script src="crawler.js"></script>
+</body>
+</html>
