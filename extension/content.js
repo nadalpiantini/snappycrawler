@@ -72,6 +72,18 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 
   try {
+    // Capture screenshot FIRST (before any DOM manipulation)
+    let screenshot = null
+    try {
+      screenshot = await chrome.tabs.captureVisibleTab(tab.windowId, {
+        format: 'jpeg',
+        quality: 60  // Compress for storage
+      })
+      console.log('📸 Snappy: Screenshot captured')
+    } catch (screenshotErr) {
+      console.warn('📸 Snappy: Screenshot failed (optional)', screenshotErr.message)
+    }
+
     // Inject UX tracking
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -126,6 +138,11 @@ chrome.action.onClicked.addListener(async (tab) => {
 
     if (result.error) {
       throw new Error(result.error)
+    }
+
+    // Add screenshot to result if captured
+    if (screenshot) {
+      result.screenshot = screenshot
     }
 
     // Create JSON blob and convert to data URL (service worker compatible)

@@ -5,7 +5,16 @@ export interface RawSnapshot {
   html: string
   text: string[]
   ux: UXEvent[]
-  timestamp: string
+  timestamp?: string
+  screenshot?: string  // Base64 data URL (jpeg)
+  meta?: {
+    viewport?: {
+      width: number
+      height: number
+    }
+    userAgent?: string
+    timestamp?: string
+  }
 }
 
 export interface UXEvent {

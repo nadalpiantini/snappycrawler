@@ -3,7 +3,7 @@
   "name": "Snappy - Page Snapshot Exporter",
   "version": "2.0.0",
   "description": "Export HTML, visible text, and UX flows from any webpage to JSON",
-  "permissions": ["activeTab", "downloads", "scripting"],
+  "permissions": ["activeTab", "downloads", "scripting", "tabs"],
   "action": {
     "default_popup": "crawler.html",
     "default_title": "Snappy Crawler",

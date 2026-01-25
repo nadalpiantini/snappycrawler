@@ -14,7 +14,7 @@ export function normalizeSnapshot(rawSnapshot: RawSnapshot): NormalizedSnapshot 
     meta: {
       source: rawSnapshot.url,
       title: rawSnapshot.title,
-      captured_at: rawSnapshot.timestamp
+      captured_at: rawSnapshot.timestamp || rawSnapshot.meta?.timestamp || new Date().toISOString()
     },
     sections,
     components,
