@@ -152,7 +152,7 @@ async function capturePage(url) {
 
     if (saveToDb) {
       console.log('DEBUG: Sending to API...')
-      const apiURL = 'http://localhost:3000/api/snapshot'
+      const apiURL = 'http://localhost:3001/api/snapshot'
       console.log('DEBUG: API URL =', apiURL)
       console.log('DEBUG: Snapshot data =', snapshot)
 
