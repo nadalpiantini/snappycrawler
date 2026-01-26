@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Snappy - Page Snapshot Exporter",
-  "version": "2.0.1",
-  "description": "Export HTML, visible text, and UX flows from any webpage to JSON",
+  "version": "2.1.0",
+  "description": "Export HTML, text, design tokens, and UX intelligence from any webpage",
   "permissions": [
     "activeTab",
     "downloads",
