@@ -106,8 +106,12 @@
     .options {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 16px;
+    }
+
+    .options .option:last-child {
+      grid-column: span 2;
     }
 
     .option {
@@ -374,6 +378,12 @@
       <label>
         <input type="checkbox" id="downloadFiles">
         Download JSON files
+      </label>
+    </div>
+    <div class="option">
+      <label>
+        <input type="checkbox" id="captureScreenshots" checked>
+        📸 Capture screenshots
       </label>
     </div>
   </div>

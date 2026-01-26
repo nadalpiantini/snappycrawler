@@ -80,6 +80,21 @@ async function capturePage(url) {
       setTimeout(resolve, 2000)
     })
 
+    // Capture screenshot if enabled
+    let screenshot = null
+    const captureScreenshots = document.getElementById('captureScreenshots').checked
+    if (captureScreenshots) {
+      try {
+        screenshot = await chrome.tabs.captureVisibleTab(tab.windowId, {
+          format: 'jpeg',
+          quality: 50  // Lower quality for faster crawling
+        })
+        console.log('DEBUG: Screenshot captured')
+      } catch (screenshotErr) {
+        console.warn('DEBUG: Screenshot failed (optional)', screenshotErr.message)
+      }
+    }
+
     // Inject capture script
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -145,6 +160,11 @@ async function capturePage(url) {
     }
 
     const snapshot = results[0].result
+
+    // Add screenshot to snapshot if captured
+    if (screenshot) {
+      snapshot.screenshot = screenshot
+    }
 
     // Save to DB if enabled
     const saveToDb = document.getElementById('saveToDb').checked
