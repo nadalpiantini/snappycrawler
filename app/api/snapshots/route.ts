@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 async function getSupabaseClient() {
@@ -27,19 +28,35 @@ async function getSupabaseClient() {
   )
 }
 
+// Service role client for when auth is disabled
+function getServiceRoleClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
 export async function GET(request: Request) {
   try {
-    const supabase = await getSupabaseClient()
-
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id')
-
     // TEMPORARY: Disable auth requirement to show all snapshots
     // TODO: Re-enable when proper user accounts are set up
     const requireAuth = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true'
+
+    // Use service role when auth is disabled to bypass RLS
+    const supabase = requireAuth ? await getSupabaseClient() : getServiceRoleClient()
+
+    // Get current user (only if auth is required)
+    let user = null
+    let authError = null
+
+    if (requireAuth) {
+      const userData = await supabase.auth.getUser()
+      user = userData.data.user
+      authError = userData.error
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
 
     if (id) {
       // Get single snapshot by ID
