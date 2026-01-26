@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -49,21 +51,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-500 to-indigo-600 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        {/* Logo */}
+        <Link href="/" className="flex justify-center mb-8">
+          <Image
+            src="/images/logo.png"
+            alt="Snappy"
+            width={120}
+            height={120}
+            className="rounded-xl"
+          />
+        </Link>
+
+        <div className="bg-card rounded-2xl shadow-xl border border-border p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              📸 Snappy
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
             </h1>
-            <p className="text-gray-600">
-              {isSignUp ? 'Create your account' : 'Welcome back'}
+            <p className="text-muted-foreground">
+              {isSignUp ? 'Start capturing websites today' : 'Sign in to your account'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
                 Email
               </label>
               <input
@@ -72,13 +85,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition text-foreground placeholder:text-muted-foreground"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
                 Password
               </label>
               <input
@@ -88,19 +101,19 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition text-foreground placeholder:text-muted-foreground"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                 {error}
               </div>
             )}
 
             {message && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm">
+              <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg text-primary text-sm">
                 {message}
               </div>
             )}
@@ -108,7 +121,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
             </button>
@@ -121,11 +134,18 @@ export default function LoginPage() {
                 setError(null)
                 setMessage(null)
               }}
-              className="text-violet-600 hover:text-violet-700 text-sm font-medium"
+              className="text-primary hover:text-primary/80 text-sm font-medium"
             >
               {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </button>
           </div>
+        </div>
+
+        {/* Back to home */}
+        <div className="mt-6 text-center">
+          <Link href="/" className="text-muted-foreground hover:text-foreground text-sm transition">
+            ← Back to home
+          </Link>
         </div>
       </div>
     </div>

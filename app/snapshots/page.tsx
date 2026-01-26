@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
 import { RawSnapshot } from '@/lib/types'
+import Image from 'next/image'
+import Link from 'next/link'
 
 interface SnapshotItem {
   id: string
@@ -121,9 +123,9 @@ export default function SnapshotsPage() {
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 60) return `hace ${diffMins}m`
-    if (diffHours < 24) return `hace ${diffHours}h`
-    if (diffDays < 7) return `hace ${diffDays}d`
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
     return formatDate(dateString)
   }
 
@@ -136,7 +138,6 @@ export default function SnapshotsPage() {
   }
 
   function estimateSize(snapshot: SnapshotItem) {
-    // Estimate based on URL length + title length (rough approximation)
     const baseSize = (snapshot.url?.length || 0) + (snapshot.title?.length || 0)
     if (baseSize < 100) return '~2 KB'
     if (baseSize < 500) return '~5 KB'
@@ -147,40 +148,46 @@ export default function SnapshotsPage() {
   if (selectedSnapshot) {
     const rawData = selectedSnapshot.raw_data
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white border-b sticky top-0 z-10">
+        <header className="bg-card border-b border-border sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <button
               onClick={() => setSelectedSnapshot(null)}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to catalog
             </button>
-            <span className="text-sm text-slate-500">{formatDate(selectedSnapshot.created_at)}</span>
+            <span className="text-sm text-muted-foreground">{formatDate(selectedSnapshot.created_at)}</span>
           </div>
         </header>
 
         {/* Content */}
         <main className="max-w-5xl mx-auto px-4 py-8">
           {/* Title Section */}
-          <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xl">
-                📸
+              <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
+                <Image
+                  src="/images/logo.png"
+                  alt="Snappy"
+                  width={32}
+                  height={32}
+                  className="rounded"
+                />
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold text-slate-900 mb-1">
+                <h1 className="text-2xl font-bold text-foreground mb-1">
                   {selectedSnapshot.title || 'Untitled'}
                 </h1>
                 <a
                   href={selectedSnapshot.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-violet-600 hover:text-violet-700 text-sm truncate block"
+                  className="text-primary hover:text-primary/80 text-sm truncate block"
                 >
                   {selectedSnapshot.url}
                 </a>
@@ -190,12 +197,12 @@ export default function SnapshotsPage() {
 
           {/* Screenshot Preview */}
           {rawData?.screenshot && (
-            <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">🖼️</span>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">🖼️</span>
                 Screenshot
               </h2>
-              <div className="rounded-lg overflow-hidden border bg-slate-100">
+              <div className="rounded-lg overflow-hidden border border-border bg-background">
                 <img
                   src={rawData.screenshot}
                   alt={`Screenshot of ${selectedSnapshot.title}`}
@@ -207,43 +214,43 @@ export default function SnapshotsPage() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-sm border p-4">
-              <div className="text-2xl font-bold text-violet-600">{rawData?.text?.length || 0}</div>
-              <div className="text-sm text-slate-500">Text Elements</div>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+              <div className="text-2xl font-bold text-primary">{rawData?.text?.length || 0}</div>
+              <div className="text-sm text-muted-foreground">Text Elements</div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border p-4">
-              <div className="text-2xl font-bold text-indigo-600">{rawData?.ux?.length || 0}</div>
-              <div className="text-sm text-slate-500">UX Events</div>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+              <div className="text-2xl font-bold text-secondary">{rawData?.ux?.length || 0}</div>
+              <div className="text-sm text-muted-foreground">UX Events</div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border p-4">
-              <div className="text-2xl font-bold text-emerald-600">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+              <div className="text-2xl font-bold text-primary">
                 {rawData?.html ? Math.round(rawData.html.length / 1024) : 0} KB
               </div>
-              <div className="text-sm text-slate-500">HTML Size</div>
+              <div className="text-sm text-muted-foreground">HTML Size</div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border p-4">
-              <div className="text-2xl font-bold text-amber-600">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+              <div className="text-2xl font-bold text-secondary">
                 {rawData?.meta?.viewport?.width || '?'} × {rawData?.meta?.viewport?.height || '?'}
               </div>
-              <div className="text-sm text-slate-500">Viewport</div>
+              <div className="text-sm text-muted-foreground">Viewport</div>
             </div>
           </div>
 
           {/* Text Content */}
-          <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">📝</span>
+          <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">📝</span>
               Text Content
-              <span className="text-sm font-normal text-slate-400">({rawData?.text?.length || 0} elements)</span>
+              <span className="text-sm font-normal text-muted-foreground">({rawData?.text?.length || 0} elements)</span>
             </h2>
-            <div className="bg-slate-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+            <div className="bg-background rounded-lg p-4 max-h-64 overflow-y-auto border border-border">
               {rawData?.text?.slice(0, 30).map((text, i) => (
-                <div key={i} className="py-1 text-sm text-slate-600 border-b border-slate-100 last:border-0">
+                <div key={i} className="py-1 text-sm text-muted-foreground border-b border-border last:border-0">
                   • {text}
                 </div>
               ))}
               {(rawData?.text?.length || 0) > 30 && (
-                <div className="py-2 text-sm text-slate-400 italic">
+                <div className="py-2 text-sm text-muted-foreground/60 italic">
                   + {(rawData?.text?.length || 0) - 30} more elements...
                 </div>
               )}
@@ -252,21 +259,21 @@ export default function SnapshotsPage() {
 
           {/* UX Events */}
           {rawData?.ux && rawData.ux.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">🎯</span>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">🎯</span>
                 UX Events
-                <span className="text-sm font-normal text-slate-400">({rawData.ux.length})</span>
+                <span className="text-sm font-normal text-muted-foreground">({rawData.ux.length})</span>
               </h2>
               <div className="space-y-2">
                 {rawData.ux.map((event, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                    <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-medium rounded">
+                  <div key={i} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
+                    <span className="px-2 py-1 bg-primary/20 text-primary text-xs font-medium rounded">
                       {event.type}
                     </span>
-                    <span className="text-sm text-slate-600">{event.tag}</span>
+                    <span className="text-sm text-foreground">{event.tag}</span>
                     {event.text && (
-                      <span className="text-sm text-slate-400 truncate">{event.text}</span>
+                      <span className="text-sm text-muted-foreground truncate">{event.text}</span>
                     )}
                   </div>
                 ))}
@@ -275,13 +282,13 @@ export default function SnapshotsPage() {
           )}
 
           {/* Raw JSON */}
-          <details className="bg-white rounded-xl shadow-sm border">
-            <summary className="p-6 cursor-pointer text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <span className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">{ }</span>
+          <details className="bg-card rounded-xl shadow-sm border border-border">
+            <summary className="p-6 cursor-pointer text-lg font-semibold text-foreground flex items-center gap-2">
+              <span className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">{ }</span>
               Raw Data
             </summary>
             <div className="px-6 pb-6">
-              <pre className="bg-slate-900 text-slate-100 rounded-lg p-4 text-xs overflow-x-auto">
+              <pre className="bg-background text-foreground rounded-lg p-4 text-xs overflow-x-auto border border-border">
                 {JSON.stringify({
                   url: selectedSnapshot.url,
                   title: selectedSnapshot.title,
@@ -301,24 +308,28 @@ export default function SnapshotsPage() {
 
   // Catalog View
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-lg">
-                📸
-              </div>
+            <Link href="/" className="flex items-center gap-3">
+              <Image
+                src="/images/logo.png"
+                alt="Snappy"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
               <div>
-                <h1 className="text-xl font-bold text-slate-900">Snappy Catalog</h1>
-                <p className="text-sm text-slate-500">{snapshots.length} snapshots</p>
+                <h1 className="text-xl font-bold text-foreground">Snappy Catalog</h1>
+                <p className="text-sm text-muted-foreground">{snapshots.length} snapshots</p>
               </div>
-            </div>
+            </Link>
             <div className="flex items-center gap-3">
               <button
                 onClick={loadSnapshots}
-                className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition"
                 title="Refresh"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,7 +338,7 @@ export default function SnapshotsPage() {
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                className="px-4 py-2 text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-lg transition"
               >
                 Logout
               </button>
@@ -338,7 +349,7 @@ export default function SnapshotsPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
             <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -346,7 +357,7 @@ export default function SnapshotsPage() {
                 placeholder="Search by title or URL..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-violet-500 focus:bg-white transition"
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
@@ -355,7 +366,7 @@ export default function SnapshotsPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-2 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-violet-500 text-sm"
+                className="px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary text-sm text-foreground"
               >
                 <option value="date">Date</option>
                 <option value="title">Title</option>
@@ -363,14 +374,14 @@ export default function SnapshotsPage() {
               </select>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                className="p-2 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground"
                 title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </button>
               <button
                 onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                className="p-2 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground"
                 title={viewMode === 'grid' ? 'Grid view' : 'List view'}
               >
                 {viewMode === 'grid' ? '▦' : '☰'}
@@ -384,18 +395,22 @@ export default function SnapshotsPage() {
       <main className="max-w-7xl mx-auto px-4 py-6">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mb-4"></div>
-            <p className="text-slate-500">Loading snapshots...</p>
+            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+            <p className="text-muted-foreground">Loading snapshots...</p>
           </div>
         ) : filteredSnapshots.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-4xl mb-4">
-              📸
-            </div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">
+            <Image
+              src="/images/logo.png"
+              alt="Snappy"
+              width={80}
+              height={80}
+              className="rounded-xl mb-4 opacity-50"
+            />
+            <h2 className="text-xl font-semibold text-foreground mb-2">
               {searchQuery ? 'No matches found' : 'No snapshots yet'}
             </h2>
-            <p className="text-slate-500 text-center max-w-md">
+            <p className="text-muted-foreground text-center max-w-md">
               {searchQuery
                 ? 'Try adjusting your search terms'
                 : 'Use the Chrome extension to capture your first snapshot'}
@@ -408,18 +423,18 @@ export default function SnapshotsPage() {
               <div
                 key={snapshot.id}
                 onClick={() => loadSnapshotDetail(snapshot.id)}
-                className="bg-white rounded-xl shadow-sm border hover:shadow-md hover:border-violet-300 cursor-pointer transition group"
+                className="bg-card rounded-xl shadow-sm border border-border hover:shadow-md hover:border-primary/30 cursor-pointer transition group"
               >
                 {/* Thumbnail placeholder */}
-                <div className="h-32 bg-gradient-to-br from-slate-100 to-slate-50 rounded-t-xl flex items-center justify-center border-b">
+                <div className="h-32 bg-muted rounded-t-xl flex items-center justify-center border-b border-border">
                   <div className="text-4xl opacity-50 group-hover:scale-110 transition">🌐</div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-slate-900 truncate mb-1 group-hover:text-violet-600 transition">
+                  <h3 className="font-semibold text-foreground truncate mb-1 group-hover:text-primary transition">
                     {snapshot.title || 'Untitled'}
                   </h3>
-                  <p className="text-sm text-slate-500 truncate mb-3">{getDomain(snapshot.url)}</p>
-                  <div className="flex items-center justify-between text-xs text-slate-400">
+                  <p className="text-sm text-muted-foreground truncate mb-3">{getDomain(snapshot.url)}</p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground/60">
                     <span>{formatRelativeDate(snapshot.created_at)}</span>
                     <span>{estimateSize(snapshot)}</span>
                   </div>
@@ -429,27 +444,27 @@ export default function SnapshotsPage() {
           </div>
         ) : (
           /* List View */
-          <div className="bg-white rounded-xl shadow-sm border divide-y">
+          <div className="bg-card rounded-xl shadow-sm border border-border divide-y divide-border">
             {filteredSnapshots.map((snapshot) => (
               <div
                 key={snapshot.id}
                 onClick={() => loadSnapshotDetail(snapshot.id)}
-                className="flex items-center gap-4 p-4 hover:bg-slate-50 cursor-pointer transition"
+                className="flex items-center gap-4 p-4 hover:bg-muted cursor-pointer transition"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-lg flex items-center justify-center text-xl flex-shrink-0">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-xl flex-shrink-0">
                   🌐
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 truncate">
+                  <h3 className="font-semibold text-foreground truncate">
                     {snapshot.title || 'Untitled'}
                   </h3>
-                  <p className="text-sm text-slate-500 truncate">{snapshot.url}</p>
+                  <p className="text-sm text-muted-foreground truncate">{snapshot.url}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-sm text-slate-600">{formatRelativeDate(snapshot.created_at)}</div>
-                  <div className="text-xs text-slate-400">{estimateSize(snapshot)}</div>
+                  <div className="text-sm text-muted-foreground">{formatRelativeDate(snapshot.created_at)}</div>
+                  <div className="text-xs text-muted-foreground/60">{estimateSize(snapshot)}</div>
                 </div>
-                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-muted-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
