@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { analyzeDesign, validateCapturedStyles } from '@/lib/design-forensics'
+import { analyzeUX, validateCapturedData, generateUXSummary } from '@/lib/ux-intelligence'
+import type { CapturedUXData } from '@/lib/ux-intelligence'
 
 // Initialize Supabase client lazily to avoid build-time errors
 function getSupabaseClient() {
@@ -88,12 +91,36 @@ export async function POST(request: NextRequest) {
       forms: snapshot.html.match(/<form[^>]*>[\s\S]*?<\/form>/gi) || []
     }
 
-    // Insert normalized snapshot
+    // Run Design Forensics analysis if design styles are captured
+    let designAnalysis = null
+    if (snapshot.designStyles && validateCapturedStyles(snapshot.designStyles)) {
+      try {
+        designAnalysis = await analyzeDesign(snapshot.designStyles, snapshot.url)
+      } catch (analysisError) {
+        console.error('Design Forensics analysis error:', analysisError)
+        // Don't fail the request, just skip design analysis
+      }
+    }
+
+    // Run UX Intelligence analysis if UX data is captured
+    let uxAnalysis = null
+    if (snapshot.uxData && validateCapturedData(snapshot.uxData as CapturedUXData)) {
+      try {
+        uxAnalysis = analyzeUX(snapshot.uxData as CapturedUXData, snapshot.url)
+      } catch (uxError) {
+        console.error('UX Intelligence analysis error:', uxError)
+        // Don't fail the request, just skip UX analysis
+      }
+    }
+
+    // Insert normalized snapshot with design analysis and UX analysis
     const { error: normError } = await supabase
       .from('snappy_normalized_snapshots')
       .insert({
         snapshot_id: snapData.id,
         normalized_data: normalized,
+        design_analysis: designAnalysis,
+        ux_analysis: uxAnalysis,
         legal_safe: false
       })
 
@@ -110,7 +137,15 @@ export async function POST(request: NextRequest) {
         headings_count: normalized.headings?.length || 0,
         links_count: normalized.links?.length || 0,
         forms_count: normalized.forms?.length || 0
-      }
+      },
+      design_analysis: designAnalysis ? {
+        confidence: designAnalysis.meta.confidence,
+        primary_color: designAnalysis.colors.primary,
+        heading_font: designAnalysis.typography.fontFamilies.heading,
+        body_font: designAnalysis.typography.fontFamilies.body,
+        spacing_unit: designAnalysis.spacing.unit
+      } : null,
+      ux_analysis: uxAnalysis ? generateUXSummary(uxAnalysis) : null
     }, {
       headers: {
         'Access-Control-Allow-Origin': '*',
