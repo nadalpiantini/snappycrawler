@@ -167,72 +167,81 @@ export default function SnapshotsPage() {
 
         {/* Content */}
         <main className="max-w-5xl mx-auto px-4 py-8">
-          {/* Title Section */}
-          <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
-                <Image
-                  src="/images/logo.png"
-                  alt="Snappy"
-                  width={32}
-                  height={32}
-                  className="rounded"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold text-foreground mb-1">
-                  {selectedSnapshot.title || 'Untitled'}
-                </h1>
-                <a
-                  href={selectedSnapshot.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:text-primary/80 text-sm truncate block"
-                >
-                  {selectedSnapshot.url}
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Screenshot Preview */}
-          {rawData?.screenshot && (
-            <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">🖼️</span>
-                Screenshot
-              </h2>
-              <div className="rounded-lg overflow-hidden border border-border bg-background">
+          {/* Profile Card - Like an ID/Cédula */}
+          <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden mb-6">
+            {/* Screenshot Section - Top of the card */}
+            <div className="relative bg-muted">
+              {rawData?.screenshot ? (
                 <img
                   src={rawData.screenshot}
                   alt={`Screenshot of ${selectedSnapshot.title}`}
-                  className="w-full h-auto max-h-[500px] object-contain"
+                  className="w-full h-64 md:h-80 object-cover object-top"
+                />
+              ) : (
+                <div className="w-full h-64 md:h-80 flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+                  <div className="text-6xl mb-4 opacity-50">🌐</div>
+                  <p className="text-muted-foreground text-sm">No screenshot available</p>
+                </div>
+              )}
+              {/* Gradient overlay for text readability */}
+              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-card to-transparent" />
+            </div>
+
+            {/* Info Section - Like ID card data */}
+            <div className="p-6 -mt-12 relative">
+              {/* Site favicon/logo placeholder */}
+              <div className="w-16 h-16 bg-card rounded-xl border-4 border-card shadow-lg flex items-center justify-center mb-4">
+                <Image
+                  src="/images/logo.png"
+                  alt="Snappy"
+                  width={40}
+                  height={40}
+                  className="rounded-lg"
                 />
               </div>
-            </div>
-          )}
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
-              <div className="text-2xl font-bold text-primary">{rawData?.text?.length || 0}</div>
-              <div className="text-sm text-muted-foreground">Text Elements</div>
-            </div>
-            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
-              <div className="text-2xl font-bold text-secondary">{rawData?.ux?.length || 0}</div>
-              <div className="text-sm text-muted-foreground">UX Events</div>
-            </div>
-            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
-              <div className="text-2xl font-bold text-primary">
-                {rawData?.html ? Math.round(rawData.html.length / 1024) : 0} KB
+              {/* Title and URL */}
+              <h1 className="text-2xl font-bold text-foreground mb-1">
+                {selectedSnapshot.title || 'Untitled'}
+              </h1>
+              <a
+                href={selectedSnapshot.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:text-primary/80 text-sm truncate block mb-4"
+              >
+                {selectedSnapshot.url}
+              </a>
+
+              {/* Stats Row - Inline like ID card fields */}
+              <div className="grid grid-cols-4 gap-3 py-4 border-t border-border">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-primary">{rawData?.text?.length || 0}</div>
+                  <div className="text-xs text-muted-foreground">Textos</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-secondary">{rawData?.ux?.length || 0}</div>
+                  <div className="text-xs text-muted-foreground">UX</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-primary">
+                    {rawData?.html ? Math.round(rawData.html.length / 1024) : 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">KB</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-bold text-secondary">
+                    {rawData?.meta?.viewport?.width || '?'}×{rawData?.meta?.viewport?.height || '?'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Viewport</div>
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">HTML Size</div>
-            </div>
-            <div className="bg-card rounded-xl shadow-sm border border-border p-4">
-              <div className="text-2xl font-bold text-secondary">
-                {rawData?.meta?.viewport?.width || '?'} × {rawData?.meta?.viewport?.height || '?'}
+
+              {/* Capture date - Like expiration date on ID */}
+              <div className="flex items-center justify-between pt-4 border-t border-border text-sm">
+                <span className="text-muted-foreground">Captured</span>
+                <span className="font-medium text-foreground">{formatDate(selectedSnapshot.created_at)}</span>
               </div>
-              <div className="text-sm text-muted-foreground">Viewport</div>
             </div>
           </div>
 
