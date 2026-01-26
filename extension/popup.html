@@ -1,72 +1,174 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      width: 300px;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 0;
+    /* Snappy Brand Colors */
+    :root {
+      --background: hsl(230 25% 10%);
+      --foreground: hsl(40 20% 95%);
+      --card: hsl(230 25% 14%);
+      --primary: hsl(142 71% 45%);
+      --primary-hover: hsl(142 71% 40%);
+      --muted: hsl(230 20% 20%);
+      --muted-foreground: hsl(40 10% 70%);
+      --border: hsl(230 20% 20%);
+      --destructive: hsl(0 84% 60%);
+      --success: hsl(142 71% 45%);
+      --radius: 8px;
     }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 320px;
+      padding: 20px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header with Logo */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
     h1 {
       font-size: 18px;
-      margin: 0 0 8px 0;
-      color: #8B5CF6;
+      font-weight: 700;
+      color: var(--foreground);
     }
+
+    h1 .highlight {
+      color: var(--primary);
+      text-shadow: 0 0 20px rgba(74, 222, 128, 0.5),
+                   0 0 40px rgba(74, 222, 128, 0.3);
+    }
+
+    /* Status Card */
     .status {
-      padding: 8px;
-      border-radius: 4px;
-      margin-bottom: 8px;
+      padding: 12px;
+      border-radius: var(--radius);
+      margin-bottom: 12px;
       font-size: 13px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted-foreground);
     }
-    .success {
-      background: #dcfce7;
-      color: #166534;
+
+    .status.success {
+      background: rgba(74, 222, 128, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
     }
-    .error {
-      background: #fee2e2;
-      color: #991b1b;
+
+    .status.error {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--destructive);
+      color: var(--destructive);
     }
-    .info {
-      background: #f3f4f6;
-      color: #374151;
+
+    .status.info {
+      background: var(--card);
+      border-color: var(--border);
+      color: var(--muted-foreground);
     }
+
+    /* Capture Button */
     button {
       width: 100%;
-      padding: 10px;
-      background: #8B5CF6;
-      color: white;
+      padding: 14px;
+      background: var(--primary);
+      color: var(--background);
       border: none;
-      border-radius: 4px;
+      border-radius: var(--radius);
       cursor: pointer;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
-    button:hover {
-      background: #7C3AED;
+
+    button:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
     }
+
     button:disabled {
-      background: #d1d5db;
+      background: var(--muted);
+      color: var(--muted-foreground);
       cursor: not-allowed;
+      transform: none;
     }
+
+    /* Error Message */
     .error-msg {
       display: none;
-      margin-top: 8px;
-      padding: 8px;
-      background: #fee2e2;
-      border-radius: 4px;
-      color: #991b1b;
+      margin-top: 12px;
+      padding: 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--destructive);
+      border-radius: var(--radius);
+      color: var(--destructive);
       font-size: 12px;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+    .footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>📸 Snappy</h1>
+  <div class="header">
+    <img src="icons/icon48.png" alt="Snappy" class="logo">
+    <h1>Snappy <span class="highlight">Capture</span></h1>
+  </div>
+
   <div id="status" class="status info">
     Ready to capture this page
   </div>
+
   <button id="captureBtn">Capture Snapshot</button>
+
   <div id="error" class="error-msg"></div>
+
+  <div class="footer">
+    Powered by <a href="https://snappycrawler.com" target="_blank">Snappy</a>
+  </div>
 
   <script src="popup.js"></script>
 </body>

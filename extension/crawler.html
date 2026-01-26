@@ -1,171 +1,324 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; }
-    body {
-      width: 400px;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 0;
-      background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
-      color: white;
+    /* Snappy Brand Colors */
+    :root {
+      --background: hsl(230 25% 10%);
+      --foreground: hsl(40 20% 95%);
+      --card: hsl(230 25% 14%);
+      --primary: hsl(142 71% 45%);
+      --primary-hover: hsl(142 71% 40%);
+      --secondary: hsl(200 45% 30%);
+      --muted: hsl(230 20% 20%);
+      --muted-foreground: hsl(40 10% 70%);
+      --border: hsl(230 20% 20%);
+      --destructive: hsl(0 84% 60%);
+      --radius: 8px;
     }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 380px;
+      padding: 20px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header with Logo */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
     h1 {
       font-size: 20px;
-      margin: 0 0 16px 0;
+      font-weight: 700;
+      color: var(--foreground);
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .input-group {
-      margin-bottom: 12px;
+
+    h1 .highlight {
+      color: var(--primary);
+      text-shadow: 0 0 20px rgba(74, 222, 128, 0.5),
+                   0 0 40px rgba(74, 222, 128, 0.3);
     }
+
+    /* Input Groups */
+    .input-group {
+      margin-bottom: 16px;
+    }
+
     label {
       display: block;
       font-size: 13px;
       font-weight: 500;
-      margin-bottom: 4px;
-      opacity: 0.9;
+      margin-bottom: 6px;
+      color: var(--muted-foreground);
     }
-    input[type="url"] {
+
+    input[type="url"],
+    input[type="number"],
+    select {
       width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       font-size: 14px;
-      background: rgba(255,255,255,0.95);
-      color: #1f2937;
+      font-family: inherit;
+      background: var(--card);
+      color: var(--foreground);
+      transition: all 0.2s;
     }
-    input:focus {
-      outline: 2px solid rgba(255,255,255,0.5);
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
     }
+
+    input::placeholder {
+      color: var(--muted-foreground);
+    }
+
+    /* Options Grid */
     .options {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 16px;
     }
+
     .option {
-      background: rgba(255,255,255,0.1);
-      padding: 8px;
-      border-radius: 4px;
+      background: var(--card);
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
     }
+
+    .option:hover {
+      border-color: var(--primary);
+    }
+
     .option label {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       font-size: 12px;
       margin: 0;
       cursor: pointer;
+      color: var(--foreground);
     }
+
     .option input[type="checkbox"] {
       width: 16px;
       height: 16px;
       cursor: pointer;
+      accent-color: var(--primary);
     }
+
+    .option input[type="number"] {
+      width: 50px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    /* Buttons */
     .buttons {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
+
     button {
       flex: 1;
-      padding: 12px;
+      padding: 14px;
       border: none;
-      border-radius: 6px;
+      border-radius: var(--radius);
       font-size: 14px;
       font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
+
     #startBtn {
-      background: white;
-      color: #8B5CF6;
+      background: var(--primary);
+      color: var(--background);
     }
+
     #startBtn:hover:not(:disabled) {
-      transform: scale(1.02);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
     }
+
     #startBtn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      transform: none;
     }
+
     #stopBtn {
-      background: rgba(220, 38, 38, 0.9);
+      background: var(--destructive);
       color: white;
       display: none;
     }
+
     #stopBtn:hover {
-      background: rgba(185, 28, 28, 0.9);
+      opacity: 0.9;
     }
+
+    /* Progress Panel */
     .progress {
-      margin-top: 12px;
-      padding: 12px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 6px;
-      font-size: 13px;
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       display: none;
     }
+
     .progress.active {
       display: block;
     }
+
     .stat {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 6px;
-      font-size: 12px;
+      margin-bottom: 8px;
+      font-size: 13px;
     }
-    .stat-label { opacity: 0.8; }
-    .stat-value { font-weight: 600; }
+
+    .stat-label {
+      color: var(--muted-foreground);
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
     .progress-bar {
       width: 100%;
       height: 6px;
-      background: rgba(255,255,255,0.2);
+      background: var(--muted);
       border-radius: 3px;
       overflow: hidden;
-      margin-top: 8px;
+      margin-top: 12px;
     }
+
     .progress-fill {
       height: 100%;
-      background: #22D3EE;
+      background: var(--primary);
       width: 0%;
       transition: width 0.3s;
+      border-radius: 3px;
     }
+
+    /* Log Panel */
     .log {
-      margin-top: 8px;
-      padding: 8px;
-      background: rgba(0,0,0,0.2);
-      border-radius: 4px;
+      margin-top: 12px;
+      padding: 10px;
+      background: var(--muted);
+      border-radius: 6px;
       font-size: 11px;
-      font-family: monospace;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
       max-height: 100px;
       overflow-y: auto;
       display: none;
     }
+
     .log.active {
       display: block;
     }
+
     .log-entry {
-      padding: 2px 0;
-      opacity: 0.8;
+      padding: 3px 0;
+      color: var(--muted-foreground);
     }
-    .log-entry.error { color: #fca5a5; }
-    .log-entry.success { color: #86efac; }
+
+    .log-entry.error {
+      color: var(--destructive);
+    }
+
+    .log-entry.success {
+      color: var(--primary);
+    }
+
+    /* Scrollbar Styling */
+    .log::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .log::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .log::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+    .footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
-  <h1>🕷️ Snappy Crawler</h1>
-
-  <div class="input-group">
-    <label for="domain">Domain to crawl:</label>
-    <input type="url" id="domain" placeholder="yamdu.com" value="">
+  <div class="header">
+    <img src="icons/icon48.png" alt="Snappy" class="logo">
+    <h1>Snappy <span class="highlight">Crawler</span></h1>
   </div>
 
   <div class="input-group">
-    <label for="apiServer">Save to server:</label>
-    <select id="apiServer" style="width: 100%; padding: 10px; border: none; border-radius: 6px; font-size: 14px; background: rgba(255,255,255,0.95); color: #1f2937;">
-      <option value="https://snappycrawler.com">🌐 Production (snappycrawler.com)</option>
-      <option value="http://localhost:3000">💻 Local (localhost:3000)</option>
+    <label for="domain">Domain to crawl</label>
+    <input type="url" id="domain" placeholder="https://example.com">
+  </div>
+
+  <div class="input-group">
+    <label for="apiServer">Save to server</label>
+    <select id="apiServer">
+      <option value="https://snappycrawler.com">Production (snappycrawler.com)</option>
+      <option value="http://localhost:3000">Local (localhost:3000)</option>
     </select>
   </div>
 
@@ -173,7 +326,7 @@
     <div class="option">
       <label>
         <input type="checkbox" id="maxPages" checked>
-        Max pages: <input type="number" id="maxPagesValue" value="50" min="1" max="500" style="width: 50px;">
+        Max pages: <input type="number" id="maxPagesValue" value="50" min="1" max="500">
       </label>
     </div>
     <div class="option">
@@ -197,31 +350,35 @@
   </div>
 
   <div class="buttons">
-    <button id="startBtn">▶️ Start Crawling</button>
-    <button id="stopBtn">⏹️ Stop</button>
+    <button id="startBtn">Start Crawling</button>
+    <button id="stopBtn">Stop</button>
   </div>
 
   <div id="progress" class="progress">
     <div class="stat">
-      <span class="stat-label">Status:</span>
+      <span class="stat-label">Status</span>
       <span class="stat-value" id="status">Ready</span>
     </div>
     <div class="stat">
-      <span class="stat-label">Pages:</span>
+      <span class="stat-label">Pages</span>
       <span class="stat-value"><span id="captured">0</span> / <span id="total">0</span></span>
     </div>
     <div class="stat">
-      <span class="stat-label">Success:</span>
+      <span class="stat-label">Success</span>
       <span class="stat-value" id="success">0</span>
     </div>
     <div class="stat">
-      <span class="stat-label">Errors:</span>
+      <span class="stat-label">Errors</span>
       <span class="stat-value" id="errors">0</span>
     </div>
     <div class="progress-bar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
     <div class="log" id="log"></div>
+  </div>
+
+  <div class="footer">
+    Powered by <a href="https://snappycrawler.com" target="_blank">Snappy</a>
   </div>
 
   <script src="crawler.js"></script>
