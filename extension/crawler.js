@@ -289,11 +289,31 @@ async function startCrawl() {
                 const links = document.querySelectorAll('a[href]')
                 const extracted = []
 
+                // Protocols that should NEVER be followed
+                const skipProtocols = [
+                  'mailto:', 'tel:', 'sms:', 'whatsapp:', 'javascript:',
+                  'data:', 'blob:', 'file:', 'ftp:', 'chrome:', 'about:'
+                ]
+
                 links.forEach(function(link) {
                   try {
                     const href = link.getAttribute('href')
-                    if (href) {
-                      const absoluteUrl = new URL(href, targetUrl)
+                    if (!href) return
+
+                    // Skip problematic protocols early
+                    const hrefLower = href.toLowerCase().trim()
+                    const isSkip = skipProtocols.some(function(p) {
+                      return hrefLower.startsWith(p)
+                    })
+                    if (isSkip) return
+
+                    // Skip empty or anchor-only links
+                    if (href === '#' || href === '') return
+
+                    const absoluteUrl = new URL(href, targetUrl)
+
+                    // Only allow http/https protocols
+                    if (absoluteUrl.protocol === 'http:' || absoluteUrl.protocol === 'https:') {
                       extracted.push(absoluteUrl.href)
                     }
                   } catch {
@@ -315,6 +335,38 @@ async function startCrawl() {
                   continue
                 }
 
+                // 🚫 SMART FILTER: Skip problematic URL protocols
+                // These would open external apps or cause issues
+                const dangerousProtocols = [
+                  'mailto:',      // Opens email client
+                  'tel:',         // Opens phone dialer
+                  'sms:',         // Opens SMS app
+                  'whatsapp:',    // Opens WhatsApp
+                  'javascript:',  // Executes code
+                  'data:',        // Data URLs
+                  'blob:',        // Blob URLs
+                  'file:',        // Local files
+                  'ftp:',         // FTP protocol
+                  'chrome:',      // Chrome internal pages
+                  'chrome-extension:', // Extensions
+                  'about:',       // Browser pages
+                  'view-source:', // Source view
+                ]
+
+                const linkLower = link.toLowerCase()
+                const isProblematic = dangerousProtocols.some(function(protocol) {
+                  return linkLower.startsWith(protocol)
+                })
+
+                if (isProblematic) {
+                  continue
+                }
+
+                // Skip anchor-only links (same page)
+                if (link.includes('#') && link.split('#')[0] === url.split('#')[0]) {
+                  continue
+                }
+
                 // Filter by domain if same-domain only
                 if (sameDomain) {
                   try {
@@ -329,8 +381,8 @@ async function startCrawl() {
                   }
                 }
 
-                // Skip common file types
-                if (link.match(/\.(jpg|jpeg|png|gif|pdf|zip|css|js|woff|woff2)$/i)) {
+                // Skip common file types and non-HTML resources
+                if (link.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|pdf|zip|rar|tar|gz|css|js|woff|woff2|ttf|eot|mp3|mp4|avi|mov|wmv|doc|docx|xls|xlsx|ppt|pptx)$/i)) {
                   continue
                 }
 
