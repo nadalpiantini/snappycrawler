@@ -7,6 +7,28 @@ import { RawSnapshot } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Header } from '@/components/Header'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Search,
+  Calendar,
+  Type,
+  Link as LinkIcon,
+  Grid3x3,
+  List,
+  FolderOpen,
+  RefreshCw,
+  ArrowLeft,
+  ChevronRight,
+  Globe,
+  Clock,
+  FileText,
+  Zap,
+  Layers,
+  Sparkles,
+  Download,
+  Filter,
+  XCircle
+} from 'lucide-react'
 
 interface SnapshotItem {
   id: string
@@ -40,6 +62,7 @@ export default function SnapshotsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [groupByProject, setGroupByProject] = useState<boolean>(true)
   const [selectedProject, setSelectedProject] = useState<string>('all')
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   type SortOption = 'date' | 'title' | 'url'
 
@@ -53,13 +76,20 @@ export default function SnapshotsPage() {
 
   async function loadSnapshots() {
     setError(null)
+    setIsRefreshing(true)
     try {
+      console.log('🔍 Fetching snapshots from API...')
       const response = await fetch('/api/snapshots')
+      console.log('📡 API Response status:', response.status)
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
+        console.error('❌ API Error:', errorData)
         throw new Error(errorData.error || 'Failed to load snapshots')
       }
+
       const data = await response.json()
+      console.log('✅ Snapshots loaded:', data?.length || 0, 'items')
 
       // Normalize data to extract project info
       const normalizedSnapshots = (data || []).map((snap: any) => ({
@@ -73,24 +103,26 @@ export default function SnapshotsPage() {
 
       setSnapshots(normalizedSnapshots)
     } catch (err) {
-      console.error('Error:', err)
+      console.error('❌ Error:', err)
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setLoading(false)
+      setIsRefreshing(false)
     }
   }
 
   async function loadSnapshotDetail(id: string) {
     try {
+      console.log('🔍 Loading snapshot detail:', id)
       const response = await fetch(`/api/snapshots?id=${id}`)
       if (!response.ok) {
-        console.error('Error loading snapshot:', response.statusText)
+        console.error('❌ Error loading snapshot:', response.statusText)
         return
       }
       const data = await response.json()
       setSelectedSnapshot(data)
     } catch (err) {
-      console.error('Error:', err)
+      console.error('❌ Error:', err)
     }
   }
 
@@ -165,9 +197,9 @@ export default function SnapshotsPage() {
 
   function formatDate(dateString: string) {
     const date = new Date(dateString)
-    return new Intl.DateTimeFormat('es', {
-      day: '2-digit',
+    return new Intl.DateTimeFormat('en-US', {
       month: 'short',
+      day: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -207,73 +239,80 @@ export default function SnapshotsPage() {
     return snapshot.raw_data?.screenshot || null
   }
 
-  // Snapshot Card Component
+  // Snapshot Card Component - Premium Design
   function SnapshotCard({ snapshot, onClick }: { snapshot: SnapshotItem; onClick: () => void }) {
     const thumbnail = getThumbnail(snapshot)
 
     return (
-      <div
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.3 }}
         onClick={onClick}
-        className="group bg-card rounded-xl shadow-sm border-2 border-border hover:border-primary/50 hover:shadow-xl transition-all cursor-pointer overflow-hidden hover:-translate-y-1 duration-300"
+        className="group relative bg-gradient-to-br from-card via-card to-muted/20 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden border border-border/50 hover:border-primary/30"
       >
+        {/* Shimmer Effect */}
+        <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        </div>
+
         {/* Thumbnail */}
-        <div className="relative h-40 bg-gradient-to-br from-muted via-muted/50 to-background overflow-hidden">
+        <div className="relative h-48 bg-gradient-to-br from-primary/5 via-secondary/5 to-background overflow-hidden">
           {thumbnail ? (
             <img
               src={thumbnail}
               alt={snapshot.title || 'Screenshot'}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-5xl opacity-30 group-hover:scale-110 transition-transform duration-300">
-                🌐
-              </div>
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5">
+              <Globe className="w-16 h-16 text-primary/30 group-hover:scale-110 transition-transform duration-300" />
             </div>
           )}
-          {/* Overlay on hover - Simple action */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-3 left-3 right-3">
-              <div className="flex items-center justify-between text-white text-sm font-medium">
-                <span className="bg-white/20 backdrop-blur-sm px-3 py-2 rounded-lg">
-                  Ver detalles
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-60" />
+
+          {/* Hover Action */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-4 left-4 right-4">
+              <div className="flex items-center justify-between">
+                <span className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-xl text-sm font-medium border border-white/20">
+                  View Details
                 </span>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <ChevronRight className="w-6 h-6 text-white transform group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </div>
-          {/* Project badge */}
+
+          {/* Project Badge */}
           {snapshot.project_name && (
-            <div className="absolute top-3 right-3 bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs px-2 py-1 rounded-lg shadow-lg">
+            <div className="absolute top-3 right-3 bg-primary/90 backdrop-blur-md text-primary-foreground text-xs px-3 py-1.5 rounded-xl shadow-lg border border-primary/20">
               {snapshot.project_name}
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="p-4">
-          <h3 className="font-semibold text-foreground truncate mb-1 group-hover:text-primary transition-colors">
+        <div className="p-5">
+          <h3 className="font-semibold text-foreground truncate mb-2 group-hover:text-primary transition-colors duration-300">
             {snapshot.title || 'Untitled'}
           </h3>
-          <p className="text-sm text-muted-foreground truncate mb-3 flex items-center gap-1">
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
+          <p className="text-sm text-muted-foreground truncate mb-4 flex items-center gap-2">
+            <LinkIcon className="w-4 h-4 flex-shrink-0" />
             {getDomain(snapshot.url)}
           </p>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
               {formatRelativeDate(snapshot.created_at)}
             </span>
-            <span className="bg-muted px-2 py-0.5 rounded">{estimateSize(snapshot)}</span>
+            <span className="bg-muted px-2.5 py-1 rounded-lg font-medium">{estimateSize(snapshot)}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
@@ -282,23 +321,27 @@ export default function SnapshotsPage() {
     const thumbnail = getThumbnail(snapshot)
 
     return (
-      <div
+      <motion.div
+        layout
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 20 }}
         onClick={onClick}
-        className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer transition group"
+        className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer transition-all duration-300 group border border-border/50 rounded-xl hover:border-primary/30 hover:shadow-lg"
       >
         {thumbnail ? (
           <img
             src={thumbnail}
             alt={snapshot.title || 'Screenshot'}
-            className="w-20 h-14 rounded-lg object-cover flex-shrink-0"
+            className="w-24 h-16 rounded-xl object-cover flex-shrink-0 shadow-md"
           />
         ) : (
-          <div className="w-20 h-14 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-2xl opacity-50">🌐</span>
+          <div className="w-24 h-16 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Globe className="w-8 h-8 text-primary/30" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-300">
             {snapshot.title || 'Untitled'}
           </h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -306,7 +349,7 @@ export default function SnapshotsPage() {
             {snapshot.project_name && (
               <>
                 <span>•</span>
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
+                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-lg text-xs font-medium">
                   {snapshot.project_name}
                 </span>
               </>
@@ -317,10 +360,8 @@ export default function SnapshotsPage() {
           <div className="text-sm text-muted-foreground">{formatRelativeDate(snapshot.created_at)}</div>
           <div className="text-xs text-muted-foreground/60">{estimateSize(snapshot)}</div>
         </div>
-        <svg className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </div>
+        <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+      </motion.div>
     )
   }
 
@@ -328,168 +369,201 @@ export default function SnapshotsPage() {
   if (selectedSnapshot) {
     const rawData = selectedSnapshot.raw_data
     return (
-      <div className="min-h-screen bg-background">
-        {/* Header - Simple back button */}
-        <header className="bg-card border-b border-border sticky top-0 z-10">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
+        {/* Header */}
+        <header className="bg-card/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <button
               onClick={() => setSelectedSnapshot(null)}
-              className="flex items-center gap-3 px-4 py-2 text-foreground hover:bg-primary/10 rounded-xl transition font-medium min-h-[44px]"
+              className="flex items-center gap-3 px-5 py-2.5 text-foreground hover:bg-primary/10 rounded-xl transition-all duration-300 font-medium min-h-[44px] hover:shadow-lg hover:shadow-primary/5 group"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              ⬅️ Volver
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              Back to Gallery
             </button>
             <span className="text-sm text-muted-foreground">{formatDate(selectedSnapshot.created_at)}</span>
           </div>
         </header>
 
         {/* Content */}
-        <main className="max-w-5xl mx-auto px-4 py-8">
-          {/* Profile Card - Like an ID/Cédula */}
-          <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden mb-6">
-            {/* Screenshot Section - Top of the card */}
-            <div className="relative bg-muted">
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          {/* Hero Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-card rounded-3xl shadow-2xl border border-border/50 overflow-hidden mb-8"
+          >
+            {/* Screenshot */}
+            <div className="relative bg-gradient-to-br from-muted/50 to-background">
               {rawData?.screenshot ? (
                 <img
                   src={rawData.screenshot}
                   alt={`Screenshot of ${selectedSnapshot.title}`}
-                  className="w-full h-64 md:h-80 object-cover object-top"
+                  className="w-full h-80 md:h-96 object-cover object-top"
                 />
               ) : (
-                <div className="w-full h-64 md:h-80 flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-                  <div className="text-6xl mb-4 opacity-50">🌐</div>
-                  <p className="text-muted-foreground text-sm">No screenshot available</p>
+                <div className="w-full h-80 md:h-96 flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5">
+                  <Globe className="w-20 h-20 text-primary/30 mb-4" />
+                  <p className="text-muted-foreground">No screenshot available</p>
                 </div>
               )}
-              {/* Gradient overlay for text readability */}
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-card to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-card to-transparent" />
             </div>
 
-            {/* Info Section - Like ID card data */}
-            <div className="p-6 -mt-12 relative">
-              {/* Site favicon/logo placeholder */}
-              <div className="w-16 h-16 bg-card rounded-xl border-4 border-card shadow-lg flex items-center justify-center mb-4">
-                <Image
-                  src="/images/logo.png"
-                  alt="Snappy"
-                  width={40}
-                  height={40}
-                  className="rounded-lg"
-                />
+            {/* Info */}
+            <div className="p-8 -mt-16 relative">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-2xl border-4 border-card shadow-xl flex items-center justify-center mb-6">
+                <Globe className="w-10 h-10 text-white" />
               </div>
 
-              {/* Title and URL */}
-              <h1 className="text-2xl font-bold text-foreground mb-1">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 {selectedSnapshot.title || 'Untitled'}
               </h1>
               <a
                 href={selectedSnapshot.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80 text-sm truncate block mb-4"
+                className="text-primary hover:text-primary/80 text-sm truncate block mb-6 flex items-center gap-2"
               >
+                <LinkIcon className="w-4 h-4" />
                 {selectedSnapshot.url}
               </a>
 
-              {/* Stats Row - Simple metrics */}
-              <div className="grid grid-cols-4 gap-3 py-4 border-t border-border">
-                <div className="text-center">
-                  <div className="text-xl font-bold text-primary">{rawData?.text?.length || 0}</div>
-                  <div className="text-xs text-muted-foreground">Textos</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-secondary">{rawData?.ux?.length || 0}</div>
-                  <div className="text-xs text-muted-foreground">Interacciones</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-primary">
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t border-border/50">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="text-center p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5"
+                >
+                  <div className="text-3xl font-bold text-primary">{rawData?.text?.length || 0}</div>
+                  <div className="text-sm text-muted-foreground mt-1">Text Elements</div>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="text-center p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5"
+                >
+                  <div className="text-3xl font-bold text-secondary">{rawData?.ux?.length || 0}</div>
+                  <div className="text-sm text-muted-foreground mt-1">Interactions</div>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="text-center p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5"
+                >
+                  <div className="text-3xl font-bold text-primary">
                     {rawData?.html ? Math.round(rawData.html.length / 1024) : 0}
                   </div>
-                  <div className="text-xs text-muted-foreground">KB</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-secondary">
+                  <div className="text-sm text-muted-foreground mt-1">KB Size</div>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="text-center p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5"
+                >
+                  <div className="text-2xl font-bold text-secondary">
                     {rawData?.meta?.viewport?.width || '?'}×{rawData?.meta?.viewport?.height || '?'}
                   </div>
-                  <div className="text-xs text-muted-foreground">Tamaño</div>
-                </div>
+                  <div className="text-sm text-muted-foreground mt-1">Viewport</div>
+                </motion.div>
               </div>
 
-              {/* Capture date - Like expiration date on ID */}
-              <div className="flex items-center justify-between pt-4 border-t border-border text-sm">
+              <div className="flex items-center justify-between pt-6 border-t border-border/50 text-sm">
                 <span className="text-muted-foreground">Captured</span>
                 <span className="font-medium text-foreground">{formatDate(selectedSnapshot.created_at)}</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Text Content - Simple section */}
-          <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">📝</span>
-              Textos de la página
-              <span className="text-sm font-normal text-muted-foreground">({rawData?.text?.length || 0} elementos)</span>
+          {/* Text Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-card rounded-2xl shadow-xl border border-border/50 p-8 mb-8"
+          >
+            <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
+                <FileText className="w-5 h-5 text-primary" />
+              </div>
+              Page Text Content
+              <span className="text-sm font-normal text-muted-foreground">({rawData?.text?.length || 0} elements)</span>
             </h2>
-            <div className="bg-background rounded-lg p-4 max-h-64 overflow-y-auto border border-border">
+            <div className="bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 max-h-80 overflow-y-auto border border-border/50">
               {rawData?.text?.slice(0, 30).map((text, i) => (
-                <div key={i} className="py-1 text-sm text-muted-foreground border-b border-border last:border-0">
+                <div key={i} className="py-2 text-sm text-muted-foreground border-b border-border/30 last:border-0 hover:text-foreground transition-colors">
                   • {text}
                 </div>
               ))}
               {(rawData?.text?.length || 0) > 30 && (
-                <div className="py-2 text-sm text-muted-foreground/60 italic">
-                  + {(rawData?.text?.length || 0) - 30} elementos más...
+                <div className="py-3 text-sm text-muted-foreground/60 italic">
+                  + {(rawData?.text?.length || 0) - 30} more elements...
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
-          {/* UX Events - Simple label */}
+          {/* UX Events */}
           {rawData?.ux && rawData.ux.length > 0 && (
-            <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">🎯</span>
-                Interacciones detectadas
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card rounded-2xl shadow-xl border border-border/50 p-8 mb-8"
+            >
+              <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-secondary" />
+                </div>
+                Detected Interactions
                 <span className="text-sm font-normal text-muted-foreground">({rawData.ux.length})</span>
               </h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {rawData.ux.map((event, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
-                    <span className="px-2 py-1 bg-primary/20 text-primary text-xs font-medium rounded">
+                  <motion.div
+                    key={i}
+                    whileHover={{ scale: 1.02 }}
+                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-background to-muted/20 rounded-xl border border-border/50 hover:border-primary/30 transition-all"
+                  >
+                    <span className="px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 text-primary text-xs font-semibold rounded-lg border border-primary/20">
                       {event.type}
                     </span>
-                    <span className="text-sm text-foreground">{event.tag}</span>
+                    <span className="text-sm font-medium text-foreground">{event.tag}</span>
                     {event.text && (
                       <span className="text-sm text-muted-foreground truncate">{event.text}</span>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
-          {/* Raw Data - Technical section */}
-          <details className="bg-card rounded-xl shadow-sm border border-border">
-            <summary className="p-6 cursor-pointer text-lg font-semibold text-foreground flex items-center gap-2">
-              <span className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">⚙️</span>
-              Datos técnicos (para desarrolladores)
-            </summary>
-            <div className="px-6 pb-6">
-              <pre className="bg-background text-foreground rounded-lg p-4 text-xs overflow-x-auto border border-border">
-                {JSON.stringify({
-                  url: selectedSnapshot.url,
-                  title: selectedSnapshot.title,
-                  created_at: selectedSnapshot.created_at,
-                  textCount: rawData?.text?.length || 0,
-                  uxEventsCount: rawData?.ux?.length || 0,
-                  htmlSize: rawData?.html ? `${Math.round(rawData.html.length / 1024)} KB` : 'N/A',
-                  viewport: rawData?.meta?.viewport || null
-                }, null, 2)}
-              </pre>
-            </div>
-          </details>
+          {/* Raw Data */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <details className="bg-card rounded-2xl shadow-xl border border-border/50 overflow-hidden group">
+              <summary className="p-8 cursor-pointer text-xl font-semibold text-foreground flex items-center gap-3 hover:bg-muted/30 transition-colors">
+                <div className="w-10 h-10 bg-gradient-to-br from-muted/50 to-muted rounded-xl flex items-center justify-center">
+                  <Layers className="w-5 h-5 text-foreground" />
+                </div>
+                Technical Data (Developer Only)
+                <ChevronRight className="w-5 h-5 ml-auto group-open:rotate-90 transition-transform" />
+              </summary>
+              <div className="px-8 pb-8">
+                <pre className="bg-gradient-to-br from-background to-muted/20 text-foreground rounded-xl p-6 text-sm overflow-x-auto border border-border/50">
+                  {JSON.stringify({
+                    url: selectedSnapshot.url,
+                    title: selectedSnapshot.title,
+                    created_at: selectedSnapshot.created_at,
+                    textCount: rawData?.text?.length || 0,
+                    uxEventsCount: rawData?.ux?.length || 0,
+                    htmlSize: rawData?.html ? `${Math.round(rawData.html.length / 1024)} KB` : 'N/A',
+                    viewport: rawData?.meta?.viewport || null
+                  }, null, 2)}
+                </pre>
+              </div>
+            </details>
+          </motion.div>
         </main>
       </div>
     )
@@ -498,261 +572,330 @@ export default function SnapshotsPage() {
   // Get unique projects for filter
   const projects = Array.from(new Set(snapshots.map(s => s.project_name).filter(Boolean)))
 
-  // Catalog View
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       {/* Header */}
       <Header variant="app" />
 
-      {/* Catalog Title & Controls */}
-      <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 sticky top-[73px] z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-background">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--primary),0.1),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(var(--secondary),0.1),transparent_50%)]" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            {/* Logo */}
+            <div className="inline-flex items-center justify-center mb-8">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary blur-2xl opacity-30" />
                 <Image
-                  src="/images/logo.png"
-                  alt="Snappy"
-                  width={32}
-                  height={32}
-                  className="rounded-lg"
+                  src="/images/snappycrawler_no_images.png"
+                  alt="SnappyCrawler"
+                  width={120}
+                  height={120}
+                  className="relative rounded-2xl w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 shadow-2xl"
                 />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Galería de Capturas
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {snapshots.length} {snapshots.length === 1 ? 'captura' : 'capturas'}
-                  {projects.length > 0 && ` • ${projects.length} ${projects.length === 1 ? 'proyecto' : 'proyectos'}`}
-                </p>
-              </div>
             </div>
-            <button
+
+            {/* Title */}
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+              Snapshot Gallery
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Browse and manage your captured web pages. Search, filter, and explore your snapshot collection.
+            </p>
+
+            {/* Stats */}
+            <div className="flex items-center justify-center gap-8 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-primary" />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-foreground text-lg">{snapshots.length}</div>
+                  <div className="text-muted-foreground text-xs">Snapshots</div>
+                </div>
+              </div>
+              {projects.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-xl flex items-center justify-center">
+                    <FolderOpen className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-foreground text-lg">{projects.length}</div>
+                    <div className="text-muted-foreground text-xs">Projects</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Controls Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="sticky top-[73px] z-10 bg-card/80 backdrop-blur-xl border-b border-border/50 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-foreground">Browse Snapshots</h2>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={loadSnapshots}
-              className="group p-3 bg-gradient-to-br from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 rounded-xl transition-all hover:scale-105 min-w-[44px] min-h-[44px] flex items-center justify-center border border-primary/20"
+              disabled={isRefreshing}
+              className="group p-3 bg-gradient-to-br from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 rounded-xl transition-all border border-primary/20 min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50"
               title="Refresh"
-              aria-label="Refresh snapshots"
             >
-              <svg className="w-5 h-5 text-primary group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
+              <RefreshCw className={`w-5 h-5 text-primary ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`} />
+            </motion.button>
           </div>
 
-          {/* Search & Filters - Simplified for non-tech users */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search - Big and simple */}
+          {/* Search & Filters */}
+          <div className="flex flex-col xl:flex-row gap-4">
+            {/* Search */}
             <div className="relative flex-1">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="🔍 Buscar por nombre..."
+                placeholder="Search snapshots by name, URL, or project..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-14 pr-4 py-4 bg-background border-2 border-border focus:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-lg text-foreground placeholder:text-muted-foreground shadow-sm"
+                className="w-full pl-12 pr-4 py-3.5 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-base text-foreground placeholder:text-muted-foreground shadow-sm"
               />
             </div>
 
-            {/* Filters - Big buttons with clear labels */}
+            {/* Filters */}
             <div className="flex flex-wrap gap-3">
-              {/* Project Filter - Simplified */}
               {projects.length > 0 && (
                 <select
                   value={selectedProject}
                   onChange={(e) => setSelectedProject(e.target.value)}
-                  className="px-6 py-4 bg-background border-2 border-border focus:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm cursor-pointer hover:border-primary/50 min-h-[56px]"
+                  className="px-4 py-3.5 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm cursor-pointer hover:border-primary/50 min-h-[48px]"
                 >
-                  <option value="all">📂 Todos los Proyectos</option>
+                  <option value="all">All Projects</option>
                   {projects.map(project => (
                     <option key={project} value={project}>{project}</option>
                   ))}
                 </select>
               )}
 
-              {/* Sort - Simple labels */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="px-6 py-4 bg-background border-2 border-border focus:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm cursor-pointer hover:border-primary/50 min-h-[56px]"
+                className="px-4 py-3.5 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm cursor-pointer hover:border-primary/50 min-h-[48px]"
               >
-                <option value="date">📅 Por Fecha</option>
-                <option value="title">📝 Por Nombre</option>
-                <option value="url">🔗 Por Enlace</option>
+                <option value="date">Sort by Date</option>
+                <option value="title">Sort by Name</option>
+                <option value="url">Sort by URL</option>
               </select>
 
-              {/* Order toggle - Very clear */}
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-6 py-4 bg-background border-2 border-border hover:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm hover:bg-primary/5 min-h-[56px] flex items-center justify-center gap-2"
-                title={sortOrder === 'asc' ? 'Más antiguos primero' : 'Más recientes primero'}
-                aria-label={sortOrder === 'asc' ? 'Ordenar ascendente' : 'Ordenar descendente'}
+                className="px-5 py-3.5 bg-background border-2 border-border hover:border-primary rounded-xl transition-all text-base font-medium text-foreground shadow-sm hover:bg-primary/5 min-h-[48px] flex items-center justify-center gap-2"
+                title={sortOrder === 'asc' ? 'Oldest first' : 'Newest first'}
               >
-                {sortOrder === 'asc' ? '⬆️ Antiguos' : '⬇️ Recientes'}
-              </button>
+                {sortOrder === 'asc' ? <Calendar className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                {sortOrder === 'asc' ? 'Oldest' : 'Newest'}
+              </motion.button>
 
-              {/* View toggle - Simple icons */}
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="px-6 py-4 bg-background border-2 border-border hover:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm hover:bg-primary/5 min-h-[56px] flex items-center justify-center gap-2"
-                title={viewMode === 'grid' ? 'Vista de cuadrícula' : 'Vista de lista'}
-                aria-label={viewMode === 'grid' ? 'Cambiar a cuadrícula' : 'Cambiar a lista'}
+                className="px-5 py-3.5 bg-background border-2 border-border hover:border-primary rounded-xl transition-all text-base font-medium text-foreground shadow-sm hover:bg-primary/5 min-h-[48px] flex items-center justify-center gap-2"
               >
-                {viewMode === 'grid' ? (
-                  <><span className="text-xl">▦</span><span className="hidden sm:inline">Cuadrícula</span></>
-                ) : (
-                  <><span className="text-xl">☰</span><span className="hidden sm:inline">Lista</span></>
-                )}
-              </button>
+                {viewMode === 'grid' ? <Grid3x3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
+                {viewMode === 'grid' ? 'Grid' : 'List'}
+              </motion.button>
 
-              {/* Group toggle - Super clear */}
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setGroupByProject(!groupByProject)}
-                className={`px-6 py-4 border-2 rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium shadow-sm min-h-[56px] flex items-center justify-center gap-2 ${
+                className={`px-5 py-3.5 border-2 rounded-xl transition-all text-base font-medium shadow-sm min-h-[48px] flex items-center justify-center gap-2 ${
                   groupByProject
-                    ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                    ? 'bg-gradient-to-r from-primary to-secondary text-white border-primary shadow-lg'
                     : 'bg-background border-border hover:border-primary text-foreground hover:bg-primary/5'
                 }`}
-                title={groupByProject ? 'Mostrar todos' : 'Agrupar por proyectos'}
-                aria-label={groupByProject ? 'Mostrar lista plana' : 'Agrupar por proyecto'}
               >
-                {groupByProject ? (
-                  <><span className="text-xl">📁</span><span className="hidden sm:inline">Agrupado</span></>
-                ) : (
-                  <><span className="text-xl">📂</span><span className="hidden sm:inline">Todos</span></>
-                )}
-              </button>
+                <FolderOpen className="w-4 h-4" />
+                {groupByProject ? 'Grouped' : 'All'}
+              </motion.button>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-primary/20 rounded-full animate-spin"></div>
-              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-            </div>
-            <p className="text-muted-foreground mt-4 text-lg">Cargando tus capturas...</p>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="relative"
+            >
+              <div className="w-20 h-20 border-4 border-primary/20 rounded-full" />
+              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-primary rounded-full" />
+            </motion.div>
+            <p className="text-muted-foreground mt-6 text-lg font-medium">Loading your snapshots...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-20 h-20 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-2xl flex items-center justify-center text-4xl mb-6 shadow-lg">
-              ⚠️
-            </div>
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
-              Algo salió mal
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="w-24 h-24 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-3xl flex items-center justify-center text-5xl mb-8 shadow-2xl"
+            >
+              <XCircle className="w-12 h-12 text-destructive" />
+            </motion.div>
+            <h2 className="text-3xl font-semibold text-foreground mb-3">
+              Oops, something went wrong
             </h2>
-            <p className="text-muted-foreground text-center max-w-md mb-6">
+            <p className="text-muted-foreground text-center max-w-md mb-8">
               {error}
             </p>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={loadSnapshots}
-              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-2xl hover:shadow-lg transition-all hover:scale-105 text-lg font-medium min-h-[56px]"
+              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-2xl hover:shadow-xl transition-all text-lg font-semibold min-h-[56px] flex items-center gap-3"
             >
-              🔄 Intentar de nuevo
-            </button>
+              <RefreshCw className="w-5 h-5" />
+              Try Again
+            </motion.button>
           </div>
         ) : filteredSnapshots.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", duration: 0.6 }}
+              className="w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl flex items-center justify-center mb-8 shadow-inner"
+            >
               <Image
-                src="/images/logo.png"
-                alt="Snappy"
-                width={64}
-                height={64}
-                className="rounded-xl opacity-50"
+                src="/images/snappycrawler_no_images.png"
+                alt="SnappyCrawler"
+                width={80}
+                height={80}
+                className="rounded-2xl opacity-50"
               />
-            </div>
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
-              {searchQuery ? 'No encontramos nada' : 'Aún no tienes capturas'}
+            </motion.div>
+            <h2 className="text-3xl font-semibold text-foreground mb-3">
+              {searchQuery ? 'No snapshots found' : 'No snapshots yet'}
             </h2>
-            <p className="text-muted-foreground text-center max-w-md mb-6">
+            <p className="text-muted-foreground text-center max-w-md mb-8">
               {searchQuery
-                ? 'Intenta con otros términos o filtros'
-                : 'Comienza capturando páginas web con la extensión de SnappyCrawler'}
+                ? 'Try adjusting your search or filters'
+                : 'Start capturing web pages with the SnappyCrawler extension'}
             </p>
             {!searchQuery && (
-              <a
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href="/snappy-extension.zip?v=2.0.1"
                 download
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-2xl hover:shadow-lg transition-all hover:scale-105 text-lg font-medium min-h-[56px]"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-2xl hover:shadow-xl transition-all text-lg font-semibold min-h-[56px]"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Descargar Extensión
-              </a>
+                <Download className="w-5 h-5" />
+                Download Extension
+              </motion.a>
             )}
           </div>
-        ) : groupByProject ? (
-          /* Grouped View */
-          <div className="space-y-8">
-            {groupedSnapshots.map((group) => (
-              <div key={group.project_id || 'uncategorized'} className="space-y-4">
-                {/* Project Header */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center">
-                    📁
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">{group.project_name}</h2>
-                    <p className="text-sm text-muted-foreground">{group.snapshots.length} {group.snapshots.length === 1 ? 'captura' : 'capturas'}</p>
-                  </div>
-                </div>
-
-                {/* Snapshots Grid */}
-                {viewMode === 'grid' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {group.snapshots.map((snapshot) => (
-                      <SnapshotCard
-                        key={snapshot.id}
-                        snapshot={snapshot}
-                        onClick={() => loadSnapshotDetail(snapshot.id)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-card rounded-xl shadow-sm border border-border divide-y divide-border overflow-hidden">
-                    {group.snapshots.map((snapshot) => (
-                      <SnapshotListItem
-                        key={snapshot.id}
-                        snapshot={snapshot}
-                        onClick={() => loadSnapshotDetail(snapshot.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
         ) : (
-          /* Flat View */
-          viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredSnapshots.map((snapshot) => (
-                <SnapshotCard
-                  key={snapshot.id}
-                  snapshot={snapshot}
-                  onClick={() => loadSnapshotDetail(snapshot.id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-card rounded-xl shadow-sm border border-border divide-y divide-border overflow-hidden">
-              {filteredSnapshots.map((snapshot) => (
-                <SnapshotListItem
-                  key={snapshot.id}
-                  snapshot={snapshot}
-                  onClick={() => loadSnapshotDetail(snapshot.id)}
-                />
-              ))}
-            </div>
-          )
+          <AnimatePresence mode="popLayout">
+            {groupByProject ? (
+              /* Grouped View */
+              <div className="space-y-10">
+                {groupedSnapshots.map((group, groupIndex) => (
+                  <motion.div
+                    key={group.project_id || 'uncategorized'}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: groupIndex * 0.1 }}
+                    className="space-y-4"
+                  >
+                    {/* Project Header */}
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl flex items-center justify-center shadow-lg">
+                        <FolderOpen className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-foreground">{group.project_name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {group.snapshots.length} snapshot{group.snapshots.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Snapshots Grid */}
+                    {viewMode === 'grid' ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        {group.snapshots.map((snapshot) => (
+                          <SnapshotCard
+                            key={snapshot.id}
+                            snapshot={snapshot}
+                            onClick={() => loadSnapshotDetail(snapshot.id)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-card rounded-2xl shadow-lg border border-border/50 divide-y divide-border/50 overflow-hidden">
+                        {group.snapshots.map((snapshot) => (
+                          <SnapshotListItem
+                            key={snapshot.id}
+                            snapshot={snapshot}
+                            onClick={() => loadSnapshotDetail(snapshot.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              /* Flat View */
+              viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  {filteredSnapshots.map((snapshot) => (
+                    <SnapshotCard
+                      key={snapshot.id}
+                      snapshot={snapshot}
+                      onClick={() => loadSnapshotDetail(snapshot.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-card rounded-2xl shadow-lg border border-border/50 divide-y divide-border/50 overflow-hidden">
+                  {filteredSnapshots.map((snapshot) => (
+                    <SnapshotListItem
+                      key={snapshot.id}
+                      snapshot={snapshot}
+                      onClick={() => loadSnapshotDetail(snapshot.id)}
+                    />
+                  ))}
+                </div>
+              )
+            )}
+          </AnimatePresence>
         )}
       </main>
     </div>
