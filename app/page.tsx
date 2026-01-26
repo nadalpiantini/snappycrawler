@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { SnapshotUploader } from '@/components/SnapshotUploader'
 import { SnapshotViewer } from '@/components/SnapshotViewer'
 import { RawSnapshot } from '@/lib/types'
-import { Github, ArrowDown, Chrome, Code2, Sparkles } from 'lucide-react'
+import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const HERO_VIDEOS = [
@@ -91,27 +91,19 @@ export default function HomePage() {
         <div className="hero-content min-h-screen flex flex-col">
           {/* Navigation */}
           <header className="container mx-auto px-4 py-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Image
                 src="/images/logo.png"
                 alt="Snappy"
-                width={56}
-                height={56}
-                className="rounded-lg"
+                width={120}
+                height={120}
+                className="rounded-xl w-16 h-16 sm:w-20 sm:h-20 md:w-[120px] md:h-[120px]"
               />
-              <span className="text-2xl font-bold text-white">Snappy</span>
+              <span className="text-2xl md:text-3xl font-bold text-white">Snappy</span>
             </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10" asChild>
-                <a href="https://github.com/snappy-platform/snappy" target="_blank" rel="noopener noreferrer">
-                  <Github className="w-4 h-4 mr-2" />
-                  GitHub
-                </a>
-              </Button>
-              <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={scrollToUpload}>
-                Try Now
-              </Button>
-            </div>
+            <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={scrollToUpload}>
+              Try Now
+            </Button>
           </header>
 
           {/* Hero Content */}
@@ -123,11 +115,11 @@ export default function HomePage() {
               </h1>
 
               <p className="text-xl md:text-2xl text-white/80 mb-4 max-w-2xl mx-auto">
-                Snapshot any webpage. Get component structure, UX flows, and production-ready code specs.
+                Point it at any domain. Get component structure, UX flows, and production-ready specs.
               </p>
 
               <p className="text-base text-white/60 mb-10">
-                No scraping. No guessing. Just structured data for your next build.
+                Automatic full-site crawling. One click, entire .com captured.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -156,6 +148,48 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Key Feature: Auto-Crawl */}
+      <section className="py-16 bg-primary/10 border-y border-primary/20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Zap className="w-4 h-4" />
+              Automatic Site Crawling
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Point at a domain. Capture everything.
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Enter any URL and Snappy crawls the entire site automatically.
+              Every page, every component, every flow — captured and normalized.
+            </p>
+            <div className="grid sm:grid-cols-3 gap-6 text-left">
+              <div className="bg-card p-5 rounded-xl border border-border">
+                <Globe className="w-8 h-8 text-primary mb-3" />
+                <h3 className="font-semibold mb-1">Full Domain Crawl</h3>
+                <p className="text-sm text-muted-foreground">
+                  Up to 50+ pages per domain. Respects same-domain filtering.
+                </p>
+              </div>
+              <div className="bg-card p-5 rounded-xl border border-border">
+                <Layers className="w-8 h-8 text-primary mb-3" />
+                <h3 className="font-semibold mb-1">Link Discovery</h3>
+                <p className="text-sm text-muted-foreground">
+                  Automatically extracts and follows internal links.
+                </p>
+              </div>
+              <div className="bg-card p-5 rounded-xl border border-border">
+                <Zap className="w-8 h-8 text-primary mb-3" />
+                <h3 className="font-semibold mb-1">Batch Processing</h3>
+                <p className="text-sm text-muted-foreground">
+                  Saves all snapshots to database. Download or process later.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
       <section id="how-it-works" className="py-24 bg-card">
         <div className="container mx-auto px-4">
@@ -174,7 +208,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">1. Capture</h3>
               <p className="text-muted-foreground">
-                Use the Chrome extension to snapshot any webpage. Captures layout, text, structure, and interactions.
+                Install the Chrome extension. Enter a URL or domain. Click start — Snappy crawls automatically.
               </p>
             </div>
 
@@ -185,7 +219,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">2. Extract</h3>
               <p className="text-muted-foreground">
-                Snappy normalizes the capture into components, hierarchy, and UX flow specifications.
+                Snappy normalizes each page into components, hierarchy, and UX flow specifications.
               </p>
             </div>
 
@@ -251,7 +285,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             <div className="p-6 bg-background rounded-xl border border-border">
-              <h3 className="font-semibold mb-2">Rebuild a Landing Page</h3>
+              <h3 className="font-semibold mb-2">Clone Any Landing</h3>
               <p className="text-sm text-muted-foreground">
                 Capture a reference page, extract component specs, rebuild it cleaner in your stack.
               </p>
@@ -269,9 +303,9 @@ export default function HomePage() {
               </p>
             </div>
             <div className="p-6 bg-background rounded-xl border border-border">
-              <h3 className="font-semibold mb-2">Design System Audit</h3>
+              <h3 className="font-semibold mb-2">Site-Wide Analysis</h3>
               <p className="text-sm text-muted-foreground">
-                Analyze how sites structure their components and naming conventions.
+                Crawl entire domains. Understand their information architecture at scale.
               </p>
             </div>
             <div className="p-6 bg-background rounded-xl border border-border">
@@ -281,9 +315,9 @@ export default function HomePage() {
               </p>
             </div>
             <div className="p-6 bg-background rounded-xl border border-border">
-              <h3 className="font-semibold mb-2">Documentation</h3>
+              <h3 className="font-semibold mb-2">Competitive Intel</h3>
               <p className="text-sm text-muted-foreground">
-                Generate component documentation from existing implementations.
+                See how competitors structure their sites. Learn from their patterns.
               </p>
             </div>
           </div>
@@ -307,14 +341,6 @@ export default function HomePage() {
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <span>Built with Next.js + Supabase + Tailwind</span>
-              <span>MIT License</span>
-              <a
-                href="https://github.com/snappy-platform/snappy"
-                className="hover:text-foreground transition-colors flex items-center gap-1"
-              >
-                <Github className="w-4 h-4" />
-                Source
-              </a>
             </div>
           </div>
         </div>

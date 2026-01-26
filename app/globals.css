@@ -71,15 +71,23 @@
 
 .video-hero video {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  min-width: 100%;
-  min-height: 100%;
-  width: auto;
-  height: auto;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   z-index: 0;
+}
+
+/* Mobile-specific video handling */
+@media (max-width: 768px) {
+  .video-hero {
+    min-height: 100svh; /* Use small viewport height for mobile */
+  }
+
+  .video-hero video {
+    object-position: center center;
+  }
 }
 
 .video-overlay {
