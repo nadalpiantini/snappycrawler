@@ -61,6 +61,7 @@ export interface Database {
           snapshot_id: string
           normalized_data: Json
           design_analysis: Json | null
+          ux_analysis: Json | null
           legal_safe: boolean
           created_at: string
         }
@@ -69,6 +70,7 @@ export interface Database {
           snapshot_id: string
           normalized_data: Json
           design_analysis?: Json | null
+          ux_analysis?: Json | null
           legal_safe?: boolean
           created_at?: string
         }
@@ -77,6 +79,7 @@ export interface Database {
           snapshot_id?: string
           normalized_data?: Json
           design_analysis?: Json | null
+          ux_analysis?: Json | null
           legal_safe?: boolean
           created_at?: string
         }

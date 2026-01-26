@@ -27,7 +27,14 @@ import {
   Sparkles,
   Download,
   Filter,
-  XCircle
+  XCircle,
+  Palette,
+  Brain,
+  FileJson,
+  FileCode,
+  ClipboardCopy,
+  Check,
+  Eye
 } from 'lucide-react'
 
 interface SnapshotItem {
@@ -38,6 +45,8 @@ interface SnapshotItem {
   raw_data?: RawSnapshot
   project_name?: string
   project_id?: string
+  design_analysis?: any
+  ux_analysis?: any
 }
 
 interface ProjectGroup {
@@ -487,6 +496,144 @@ export default function SnapshotsPage() {
                 <span className="text-muted-foreground">Captured</span>
                 <span className="font-medium text-foreground">{formatDate(selectedSnapshot.created_at)}</span>
               </div>
+            </div>
+          </motion.div>
+
+          {/* Analysis Tools - Design Tokens & UX Intelligence */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+          >
+            {/* Design Tokens Card */}
+            <div className="bg-card rounded-2xl shadow-xl border border-border/50 p-6 hover:shadow-2xl transition-shadow">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center">
+                  <Palette className="w-7 h-7 text-purple-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Design Tokens</h3>
+                  <p className="text-sm text-muted-foreground">Typography, colors, spacing</p>
+                </div>
+              </div>
+
+              {selectedSnapshot.design_analysis ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <Check className="w-4 h-4" />
+                    <span>Analysis available</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        const dataStr = JSON.stringify(selectedSnapshot.design_analysis, null, 2)
+                        navigator.clipboard.writeText(dataStr)
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <ClipboardCopy className="w-4 h-4" />
+                      Copy JSON
+                    </button>
+                    <button
+                      onClick={() => {
+                        const dataStr = JSON.stringify(selectedSnapshot.design_analysis, null, 2)
+                        const blob = new Blob([dataStr], { type: 'application/json' })
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = `design-tokens-${selectedSnapshot.id}.json`
+                        a.click()
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <FileJson className="w-4 h-4" />
+                      Download JSON
+                    </button>
+                  </div>
+
+                  {/* Quick preview */}
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      Preview Analysis
+                    </summary>
+                    <pre className="mt-3 p-4 bg-muted/50 rounded-lg text-xs overflow-x-auto max-h-60">
+                      {JSON.stringify(selectedSnapshot.design_analysis, null, 2)}
+                    </pre>
+                  </details>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-4">
+                  <p>No design analysis available for this snapshot.</p>
+                  <p className="text-xs mt-2">Re-capture with extension v2.1+ for design analysis.</p>
+                </div>
+              )}
+            </div>
+
+            {/* UX Intelligence Card */}
+            <div className="bg-card rounded-2xl shadow-xl border border-border/50 p-6 hover:shadow-2xl transition-shadow">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center">
+                  <Brain className="w-7 h-7 text-blue-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">UX Intelligence</h3>
+                  <p className="text-sm text-muted-foreground">CTAs, forms, navigation, accessibility</p>
+                </div>
+              </div>
+
+              {selectedSnapshot.ux_analysis ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <Check className="w-4 h-4" />
+                    <span>Analysis available</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        const dataStr = JSON.stringify(selectedSnapshot.ux_analysis, null, 2)
+                        navigator.clipboard.writeText(dataStr)
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <ClipboardCopy className="w-4 h-4" />
+                      Copy JSON
+                    </button>
+                    <button
+                      onClick={() => {
+                        const dataStr = JSON.stringify(selectedSnapshot.ux_analysis, null, 2)
+                        const blob = new Blob([dataStr], { type: 'application/json' })
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = `ux-analysis-${selectedSnapshot.id}.json`
+                        a.click()
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <FileJson className="w-4 h-4" />
+                      Download JSON
+                    </button>
+                  </div>
+
+                  {/* Quick preview */}
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      Preview Analysis
+                    </summary>
+                    <pre className="mt-3 p-4 bg-muted/50 rounded-lg text-xs overflow-x-auto max-h-60">
+                      {JSON.stringify(selectedSnapshot.ux_analysis, null, 2)}
+                    </pre>
+                  </details>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-4">
+                  <p>No UX analysis available for this snapshot.</p>
+                  <p className="text-xs mt-2">Re-capture with extension v2.1+ for UX intelligence.</p>
+                </div>
+              )}
             </div>
           </motion.div>
 

@@ -59,10 +59,16 @@ export async function GET(request: Request) {
     const id = searchParams.get('id')
 
     if (id) {
-      // Get single snapshot by ID
+      // Get single snapshot by ID with normalized data
       let query = supabase
         .from('snappy_snapshots')
-        .select('*')
+        .select(`
+          *,
+          snappy_normalized_snapshots (
+            design_analysis,
+            ux_analysis
+          )
+        `)
         .eq('id', id)
 
       if (requireAuth && user) {
@@ -76,7 +82,16 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Snapshot not found' }, { status: 404 })
       }
 
-      return NextResponse.json(data)
+      // Flatten normalized data for easier access
+      const normalized = data.snappy_normalized_snapshots?.[0] || {}
+      const result = {
+        ...data,
+        design_analysis: normalized.design_analysis || null,
+        ux_analysis: normalized.ux_analysis || null
+      }
+      delete (result as any).snappy_normalized_snapshots
+
+      return NextResponse.json(result)
     }
 
     // Get snapshots with project information (limited to 50)
