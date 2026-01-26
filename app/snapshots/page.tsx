@@ -231,14 +231,14 @@ export default function SnapshotsPage() {
               </div>
             </div>
           )}
-          {/* Overlay on hover */}
+          {/* Overlay on hover - Simple action */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="absolute bottom-3 left-3 right-3">
-              <div className="flex items-center justify-between text-white text-xs">
-                <span className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-lg">
-                  View details
+              <div className="flex items-center justify-between text-white text-sm font-medium">
+                <span className="bg-white/20 backdrop-blur-sm px-3 py-2 rounded-lg">
+                  Ver detalles
                 </span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </div>
@@ -329,17 +329,17 @@ export default function SnapshotsPage() {
     const rawData = selectedSnapshot.raw_data
     return (
       <div className="min-h-screen bg-background">
-        {/* Header */}
+        {/* Header - Simple back button */}
         <header className="bg-card border-b border-border sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <button
               onClick={() => setSelectedSnapshot(null)}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition"
+              className="flex items-center gap-3 px-4 py-2 text-foreground hover:bg-primary/10 rounded-xl transition font-medium min-h-[44px]"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to catalog
+              ⬅️ Volver
             </button>
             <span className="text-sm text-muted-foreground">{formatDate(selectedSnapshot.created_at)}</span>
           </div>
@@ -393,7 +393,7 @@ export default function SnapshotsPage() {
                 {selectedSnapshot.url}
               </a>
 
-              {/* Stats Row - Inline like ID card fields */}
+              {/* Stats Row - Simple metrics */}
               <div className="grid grid-cols-4 gap-3 py-4 border-t border-border">
                 <div className="text-center">
                   <div className="text-xl font-bold text-primary">{rawData?.text?.length || 0}</div>
@@ -401,7 +401,7 @@ export default function SnapshotsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-xl font-bold text-secondary">{rawData?.ux?.length || 0}</div>
-                  <div className="text-xs text-muted-foreground">UX</div>
+                  <div className="text-xs text-muted-foreground">Interacciones</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xl font-bold text-primary">
@@ -413,7 +413,7 @@ export default function SnapshotsPage() {
                   <div className="text-sm font-bold text-secondary">
                     {rawData?.meta?.viewport?.width || '?'}×{rawData?.meta?.viewport?.height || '?'}
                   </div>
-                  <div className="text-xs text-muted-foreground">Viewport</div>
+                  <div className="text-xs text-muted-foreground">Tamaño</div>
                 </div>
               </div>
 
@@ -425,12 +425,12 @@ export default function SnapshotsPage() {
             </div>
           </div>
 
-          {/* Text Content */}
+          {/* Text Content - Simple section */}
           <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
             <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <span className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">📝</span>
-              Text Content
-              <span className="text-sm font-normal text-muted-foreground">({rawData?.text?.length || 0} elements)</span>
+              Textos de la página
+              <span className="text-sm font-normal text-muted-foreground">({rawData?.text?.length || 0} elementos)</span>
             </h2>
             <div className="bg-background rounded-lg p-4 max-h-64 overflow-y-auto border border-border">
               {rawData?.text?.slice(0, 30).map((text, i) => (
@@ -440,18 +440,18 @@ export default function SnapshotsPage() {
               ))}
               {(rawData?.text?.length || 0) > 30 && (
                 <div className="py-2 text-sm text-muted-foreground/60 italic">
-                  + {(rawData?.text?.length || 0) - 30} more elements...
+                  + {(rawData?.text?.length || 0) - 30} elementos más...
                 </div>
               )}
             </div>
           </div>
 
-          {/* UX Events */}
+          {/* UX Events - Simple label */}
           {rawData?.ux && rawData.ux.length > 0 && (
             <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary">🎯</span>
-                UX Events
+                Interacciones detectadas
                 <span className="text-sm font-normal text-muted-foreground">({rawData.ux.length})</span>
               </h2>
               <div className="space-y-2">
@@ -470,11 +470,11 @@ export default function SnapshotsPage() {
             </div>
           )}
 
-          {/* Raw JSON */}
+          {/* Raw Data - Technical section */}
           <details className="bg-card rounded-xl shadow-sm border border-border">
             <summary className="p-6 cursor-pointer text-lg font-semibold text-foreground flex items-center gap-2">
-              <span className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">{ }</span>
-              Raw Data
+              <span className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">⚙️</span>
+              Datos técnicos (para desarrolladores)
             </summary>
             <div className="px-6 pb-6">
               <pre className="bg-background text-foreground rounded-lg p-4 text-xs overflow-x-auto border border-border">
@@ -520,11 +520,11 @@ export default function SnapshotsPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Snapshot Gallery
+                  Galería de Capturas
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  {snapshots.length} {snapshots.length === 1 ? 'snapshot' : 'snapshots'}
-                  {projects.length > 0 && ` • ${projects.length} ${projects.length === 1 ? 'project' : 'projects'}`}
+                  {snapshots.length} {snapshots.length === 1 ? 'captura' : 'capturas'}
+                  {projects.length > 0 && ` • ${projects.length} ${projects.length === 1 ? 'proyecto' : 'proyectos'}`}
                 </p>
               </div>
             </div>
@@ -540,78 +540,89 @@ export default function SnapshotsPage() {
             </button>
           </div>
 
-          {/* Search & Filters */}
+          {/* Search & Filters - Simplified for non-tech users */}
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
+            {/* Search - Big and simple */}
             <div className="relative flex-1">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 type="text"
-                placeholder="Search by title, URL, or project..."
+                placeholder="🔍 Buscar por nombre..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-foreground placeholder:text-muted-foreground shadow-sm"
+                className="w-full pl-14 pr-4 py-4 bg-background border-2 border-border focus:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-lg text-foreground placeholder:text-muted-foreground shadow-sm"
               />
             </div>
 
-            {/* Filters */}
+            {/* Filters - Big buttons with clear labels */}
             <div className="flex flex-wrap gap-3">
-              {/* Project Filter */}
+              {/* Project Filter - Simplified */}
               {projects.length > 0 && (
                 <select
                   value={selectedProject}
                   onChange={(e) => setSelectedProject(e.target.value)}
-                  className="px-4 py-3 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm cursor-pointer hover:border-primary/50"
+                  className="px-6 py-4 bg-background border-2 border-border focus:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm cursor-pointer hover:border-primary/50 min-h-[56px]"
                 >
-                  <option value="all">All Projects</option>
+                  <option value="all">📂 Todos los Proyectos</option>
                   {projects.map(project => (
                     <option key={project} value={project}>{project}</option>
                   ))}
                 </select>
               )}
 
-              {/* Sort */}
+              {/* Sort - Simple labels */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="px-4 py-3 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm cursor-pointer hover:border-primary/50"
+                className="px-6 py-4 bg-background border-2 border-border focus:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm cursor-pointer hover:border-primary/50 min-h-[56px]"
               >
-                <option value="date">📅 Date</option>
-                <option value="title">📝 Title</option>
-                <option value="url">🔗 URL</option>
+                <option value="date">📅 Por Fecha</option>
+                <option value="title">📝 Por Nombre</option>
+                <option value="url">🔗 Por Enlace</option>
               </select>
 
+              {/* Order toggle - Very clear */}
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-4 py-3 bg-background border-2 border-border hover:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm hover:bg-primary/5 min-w-[44px] min-h-[44px] flex items-center justify-center"
-                title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-                aria-label={sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
+                className="px-6 py-4 bg-background border-2 border-border hover:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm hover:bg-primary/5 min-h-[56px] flex items-center justify-center gap-2"
+                title={sortOrder === 'asc' ? 'Más antiguos primero' : 'Más recientes primero'}
+                aria-label={sortOrder === 'asc' ? 'Ordenar ascendente' : 'Ordenar descendente'}
               >
-                {sortOrder === 'asc' ? '↑ Oldest' : '↓ Newest'}
+                {sortOrder === 'asc' ? '⬆️ Antiguos' : '⬇️ Recientes'}
               </button>
 
+              {/* View toggle - Simple icons */}
               <button
                 onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="px-4 py-3 bg-background border-2 border-border hover:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm hover:bg-primary/5 min-w-[44px] min-h-[44px] flex items-center justify-center gap-2"
-                title={viewMode === 'grid' ? 'Grid view' : 'List view'}
-                aria-label={viewMode === 'grid' ? 'Switch to grid view' : 'Switch to list view'}
+                className="px-6 py-4 bg-background border-2 border-border hover:border-primary rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium text-foreground shadow-sm hover:bg-primary/5 min-h-[56px] flex items-center justify-center gap-2"
+                title={viewMode === 'grid' ? 'Vista de cuadrícula' : 'Vista de lista'}
+                aria-label={viewMode === 'grid' ? 'Cambiar a cuadrícula' : 'Cambiar a lista'}
               >
-                {viewMode === 'grid' ? '⊞ Grid' : '☰ List'}
+                {viewMode === 'grid' ? (
+                  <><span className="text-xl">▦</span><span className="hidden sm:inline">Cuadrícula</span></>
+                ) : (
+                  <><span className="text-xl">☰</span><span className="hidden sm:inline">Lista</span></>
+                )}
               </button>
 
+              {/* Group toggle - Super clear */}
               <button
                 onClick={() => setGroupByProject(!groupByProject)}
-                className={`px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center gap-2 ${
+                className={`px-6 py-4 border-2 rounded-2xl focus:ring-4 focus:ring-primary/10 transition-all text-base font-medium shadow-sm min-h-[56px] flex items-center justify-center gap-2 ${
                   groupByProject
-                    ? 'bg-primary text-primary-foreground border-primary'
+                    ? 'bg-primary text-primary-foreground border-primary shadow-md'
                     : 'bg-background border-border hover:border-primary text-foreground hover:bg-primary/5'
                 }`}
-                title={groupByProject ? 'Ungroup' : 'Group by project'}
-                aria-label={groupByProject ? 'Show flat list' : 'Group by project'}
+                title={groupByProject ? 'Mostrar todos' : 'Agrupar por proyectos'}
+                aria-label={groupByProject ? 'Mostrar lista plana' : 'Agrupar por proyecto'}
               >
-                📁 Group
+                {groupByProject ? (
+                  <><span className="text-xl">📁</span><span className="hidden sm:inline">Agrupado</span></>
+                ) : (
+                  <><span className="text-xl">📂</span><span className="hidden sm:inline">Todos</span></>
+                )}
               </button>
             </div>
           </div>
@@ -626,7 +637,7 @@ export default function SnapshotsPage() {
               <div className="w-16 h-16 border-4 border-primary/20 rounded-full animate-spin"></div>
               <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
             </div>
-            <p className="text-muted-foreground mt-4">Loading your snapshots...</p>
+            <p className="text-muted-foreground mt-4 text-lg">Cargando tus capturas...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -634,16 +645,16 @@ export default function SnapshotsPage() {
               ⚠️
             </div>
             <h2 className="text-2xl font-semibold text-foreground mb-2">
-              Something went wrong
+              Algo salió mal
             </h2>
             <p className="text-muted-foreground text-center max-w-md mb-6">
               {error}
             </p>
             <button
               onClick={loadSnapshots}
-              className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:shadow-lg transition-all hover:scale-105"
+              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-2xl hover:shadow-lg transition-all hover:scale-105 text-lg font-medium min-h-[56px]"
             >
-              Try Again
+              🔄 Intentar de nuevo
             </button>
           </div>
         ) : filteredSnapshots.length === 0 ? (
@@ -658,23 +669,23 @@ export default function SnapshotsPage() {
               />
             </div>
             <h2 className="text-2xl font-semibold text-foreground mb-2">
-              {searchQuery ? 'No matches found' : 'No snapshots yet'}
+              {searchQuery ? 'No encontramos nada' : 'Aún no tienes capturas'}
             </h2>
             <p className="text-muted-foreground text-center max-w-md mb-6">
               {searchQuery
-                ? 'Try adjusting your search terms or filters'
-                : 'Start capturing web pages with the SnappyCrawler extension'}
+                ? 'Intenta con otros términos o filtros'
+                : 'Comienza capturando páginas web con la extensión de SnappyCrawler'}
             </p>
             {!searchQuery && (
               <a
                 href="/snappy-extension.zip?v=2.0.1"
                 download
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:shadow-lg transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-2xl hover:shadow-lg transition-all hover:scale-105 text-lg font-medium min-h-[56px]"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Download Extension
+                Descargar Extensión
               </a>
             )}
           </div>
@@ -690,7 +701,7 @@ export default function SnapshotsPage() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-foreground">{group.project_name}</h2>
-                    <p className="text-sm text-muted-foreground">{group.snapshots.length} {group.snapshots.length === 1 ? 'snapshot' : 'snapshots'}</p>
+                    <p className="text-sm text-muted-foreground">{group.snapshots.length} {group.snapshots.length === 1 ? 'captura' : 'capturas'}</p>
                   </div>
                 </div>
 
