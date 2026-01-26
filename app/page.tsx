@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { SnapshotUploader } from '@/components/SnapshotUploader'
 import { SnapshotViewer } from '@/components/SnapshotViewer'
 import { RawSnapshot } from '@/lib/types'
-import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers } from 'lucide-react'
+import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const HERO_VIDEOS = [
@@ -95,15 +95,22 @@ export default function HomePage() {
               <Image
                 src="/images/logo.png"
                 alt="Snappy"
-                width={120}
-                height={120}
-                className="rounded-xl w-16 h-16 sm:w-20 sm:h-20 md:w-[120px] md:h-[120px]"
+                width={240}
+                height={240}
+                className="rounded-xl w-20 h-20 sm:w-28 sm:h-28 md:w-[180px] md:h-[180px] lg:w-[240px] lg:h-[240px]"
               />
-              <span className="text-2xl md:text-3xl font-bold text-white">Snappy</span>
             </div>
-            <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={scrollToUpload}>
-              Try Now
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
+                <a href="/snappy-extension.zip" download>
+                  <Download className="w-4 h-4 mr-1" />
+                  Extension
+                </a>
+              </Button>
+              <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={scrollToUpload}>
+                Try Now
+              </Button>
+            </div>
           </header>
 
           {/* Hero Content */}
@@ -208,7 +215,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">1. Capture</h3>
               <p className="text-muted-foreground">
-                Install the Chrome extension. Enter a URL or domain. Click start — Snappy crawls automatically.
+                <a href="/snappy-extension.zip" download className="text-primary hover:underline">Download the extension</a>, load it in Chrome. Enter a URL — Snappy crawls automatically.
               </p>
             </div>
 
