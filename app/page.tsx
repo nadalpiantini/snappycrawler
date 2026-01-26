@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { SnapshotUploader } from '@/components/SnapshotUploader'
 import { SnapshotViewer } from '@/components/SnapshotViewer'
 import { RawSnapshot } from '@/lib/types'
-import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download } from 'lucide-react'
+import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download, User, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/browser'
 
 const HERO_VIDEOS = [
   '/videos/hero-1.mp4',
@@ -17,11 +19,21 @@ const HERO_VIDEOS = [
 export default function HomePage() {
   const [snapshot, setSnapshot] = useState<RawSnapshot | null>(null)
   const [videoSrc, setVideoSrc] = useState<string>('')
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+
+  const supabase = createClient()
 
   useEffect(() => {
     // Random video on each page load
     const randomIndex = Math.floor(Math.random() * HERO_VIDEOS.length)
     setVideoSrc(HERO_VIDEOS[randomIndex])
+
+    // Check auth state
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setIsLoggedIn(!!session)
+    }
+    checkAuth()
   }, [])
 
   const handleUpload = (data: RawSnapshot) => {
@@ -42,7 +54,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <header className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <Image
                 src="/images/logo.png"
                 alt="Snappy"
@@ -51,10 +63,20 @@ export default function HomePage() {
                 className="rounded-lg"
               />
               <span className="text-xl font-bold">Snappy</span>
+            </Link>
+            <div className="flex items-center gap-2">
+              {isLoggedIn && (
+                <Button variant="outline" asChild>
+                  <Link href="/snapshots">
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    My Snapshots
+                  </Link>
+                </Button>
+              )}
+              <Button variant="outline" onClick={handleReset}>
+                New Snapshot
+              </Button>
             </div>
-            <Button variant="outline" onClick={handleReset}>
-              New Snapshot
-            </Button>
           </header>
 
           {/* Viewer */}
@@ -107,6 +129,23 @@ export default function HomePage() {
                   Extension
                 </a>
               </Button>
+              {isLoggedIn !== null && (
+                isLoggedIn ? (
+                  <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
+                    <Link href="/snapshots">
+                      <FolderOpen className="w-4 h-4 mr-1" />
+                      My Snapshots
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
+                    <Link href="/login">
+                      <User className="w-4 h-4 mr-1" />
+                      Login
+                    </Link>
+                  </Button>
+                )
+              )}
               <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={scrollToUpload}>
                 Try Now
               </Button>
