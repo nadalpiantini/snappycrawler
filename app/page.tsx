@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { SnapshotUploader } from '@/components/SnapshotUploader'
 import { SnapshotViewer } from '@/components/SnapshotViewer'
 import { RawSnapshot } from '@/lib/types'
-import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download, User, FolderOpen } from 'lucide-react'
+import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download, User, FolderOpen, Menu, X, Github, Twitter, Mail, FileText, Shield, HelpCircle, Upload, Check, AlertCircle, Copy, Route, Bot, Target, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/browser'
 import { Header } from '@/components/Header'
@@ -21,6 +21,10 @@ export default function HomePage() {
   const [snapshot, setSnapshot] = useState<RawSnapshot | null>(null)
   const [videoSrc, setVideoSrc] = useState<string>('')
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const [activeSection, setActiveSection] = useState<string>('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
+  const [isUploading, setIsUploading] = useState<boolean>(false)
+  const [faqOpen, setFaqOpen] = useState<number | null>(null)
 
   const supabase = createClient()
 
@@ -35,10 +39,28 @@ export default function HomePage() {
       setIsLoggedIn(!!session)
     }
     checkAuth()
+
+    // Scroll spy for active section
+    const handleScroll = () => {
+      const sections = ['features', 'how-it-works', 'use-cases', 'upload-section']
+      for (const section of sections) {
+        const element = document.getElementById(section)
+        if (element) {
+          const rect = element.getBoundingClientRect()
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            setActiveSection(section)
+            break
+          }
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const handleUpload = (data: RawSnapshot) => {
-    setSnapshot(data)
+    handleUploadComplete(data)
   }
 
   const handleReset = () => {
@@ -47,6 +69,24 @@ export default function HomePage() {
 
   const scrollToUpload = () => {
     document.getElementById('upload-section')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+    setMobileMenuOpen(false)
+  }
+
+  const toggleFaq = (index: number) => {
+    setFaqOpen(faqOpen === index ? null : index)
+  }
+
+  const handleUploadStart = () => {
+    setIsUploading(true)
+  }
+
+  const handleUploadComplete = (data: RawSnapshot) => {
+    setIsUploading(false)
+    setSnapshot(data)
   }
 
   if (snapshot) {
@@ -175,7 +215,92 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Sticky Navigation */}
+      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between py-3">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6">
+              <button
+                onClick={() => scrollToSection('features')}
+                className={`text-sm font-medium transition-colors min-h-[44px] px-3 flex items-center ${
+                  activeSection === 'features' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Features
+              </button>
+              <button
+                onClick={() => scrollToSection('how-it-works')}
+                className={`text-sm font-medium transition-colors min-h-[44px] px-3 flex items-center ${
+                  activeSection === 'how-it-works' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => scrollToSection('use-cases')}
+                className={`text-sm font-medium transition-colors min-h-[44px] px-3 flex items-center ${
+                  activeSection === 'use-cases' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Use Cases
+              </button>
+              <button
+                onClick={() => scrollToSection('upload-section')}
+                className={`text-sm font-medium transition-colors min-h-[44px] px-3 flex items-center ${
+                  activeSection === 'upload-section' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Try It
+              </button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-border">
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => scrollToSection('features')}
+                  className="text-left text-sm font-medium py-3 px-4 hover:bg-muted rounded-lg min-h-[44px] flex items-center"
+                >
+                  Features
+                </button>
+                <button
+                  onClick={() => scrollToSection('how-it-works')}
+                  className="text-left text-sm font-medium py-3 px-4 hover:bg-muted rounded-lg min-h-[44px] flex items-center"
+                >
+                  How It Works
+                </button>
+                <button
+                  onClick={() => scrollToSection('use-cases')}
+                  className="text-left text-sm font-medium py-3 px-4 hover:bg-muted rounded-lg min-h-[44px] flex items-center"
+                >
+                  Use Cases
+                </button>
+                <button
+                  onClick={() => scrollToSection('upload-section')}
+                  className="text-left text-sm font-medium py-3 px-4 hover:bg-muted rounded-lg min-h-[44px] flex items-center"
+                >
+                  Try It
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+
       {/* Key Feature: Auto-Crawl */}
+      <section id="features" className="py-16 bg-primary/10 border-y border-primary/20">
       <section className="py-16 bg-primary/10 border-y border-primary/20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
@@ -265,48 +390,156 @@ export default function HomePage() {
       </section>
 
       {/* Use Cases */}
-      <section className="py-24 bg-card">
+      <section id="use-cases" className="py-24 bg-card">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
             What You Can Build
           </h2>
+          <p className="text-muted-foreground text-center mb-16 max-w-2xl mx-auto">
+            Real examples of what developers are building with Snappy
+          </p>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <div className="p-6 bg-background rounded-xl border border-border">
+            <div className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-colors group">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Copy className="w-6 h-6 text-primary" />
+              </div>
               <h3 className="font-semibold mb-2">Clone Any Landing</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Capture a reference page, extract component specs, rebuild it cleaner in your stack.
               </p>
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                <span className="font-medium">Example:</span> Capture Vercel's landing, extract hero section, rebuild with Next.js + Tailwind
+              </div>
             </div>
-            <div className="p-6 bg-background rounded-xl border border-border">
+            <div className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-colors group">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Route className="w-6 h-6 text-primary" />
+              </div>
               <h3 className="font-semibold mb-2">Extract UX Flows</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Snapshot a multi-step flow, get step-by-step UX logic, implement in your app.
               </p>
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                <span className="font-medium">Example:</span> Stripe checkout flow → 5 steps → Auth → Payment → Confirmation
+              </div>
             </div>
-            <div className="p-6 bg-background rounded-xl border border-border">
+            <div className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-colors group">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Bot className="w-6 h-6 text-primary" />
+              </div>
               <h3 className="font-semibold mb-2">AI Code Generation</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Feed normalized specs to GPT/Claude. Get accurate, structured code output.
               </p>
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                <span className="font-medium">Example:</span> Prompt: "Build this component" + Snappy spec → React code
+              </div>
             </div>
-            <div className="p-6 bg-background rounded-xl border border-border">
+            <div className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-colors group">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Globe className="w-6 h-6 text-primary" />
+              </div>
               <h3 className="font-semibold mb-2">Site-Wide Analysis</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Crawl entire domains. Understand their information architecture at scale.
               </p>
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                <span className="font-medium">Example:</span> Crawl 50+ pages → Map navigation → Identify content patterns
+              </div>
             </div>
-            <div className="p-6 bg-background rounded-xl border border-border">
+            <div className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-colors group">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
               <h3 className="font-semibold mb-2">Rapid Prototyping</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Start from a working reference instead of blank canvas. Ship faster.
               </p>
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                <span className="font-medium">Example:</span> Reference site → Extract layout → Customize → Deploy
+              </div>
             </div>
-            <div className="p-6 bg-background rounded-xl border border-border">
+            <div className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-colors group">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <Target className="w-6 h-6 text-primary" />
+              </div>
               <h3 className="font-semibold mb-2">Competitive Intel</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 See how competitors structure their sites. Learn from their patterns.
               </p>
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                <span className="font-medium">Example:</span> Analyze top 5 competitors → Compare IA → Find gaps
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <HelpCircle className="w-4 h-4" />
+                FAQ
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-muted-foreground">
+                Everything you need to know about Snappy
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                {
+                  q: "What browsers does Snappy support?",
+                  a: "Snappy currently works with Chrome and Chromium-based browsers (Edge, Brave, Opera). We're working on Firefox and Safari support."
+                },
+                {
+                  q: "Is my data private and secure?",
+                  a: "Yes. All snapshots are stored securely in your own database. We don't access or analyze your captured data unless you explicitly share it."
+                },
+                {
+                  q: "Can I use Snappy for commercial projects?",
+                  a: "Absolutely. Snappy is perfect for commercial work - clone landing pages, analyze competitors, extract UX patterns for client projects."
+                },
+                {
+                  q: "What's the difference between Free and Pro?",
+                  a: "Free tier includes basic snapshots and manual crawling. Pro adds auto-crawl, visual previews, text extraction, and AI-ready JSON exports."
+                },
+                {
+                  q: "How does auto-crawl work?",
+                  a: "Enter a domain URL and Snappy automatically discovers and crawls all linked pages (up to 50 pages). It respects same-domain filtering and saves everything to your gallery."
+                },
+                {
+                  q: "Can I export the data?",
+                  a: "Yes. Each snapshot can be downloaded as JSON. Pro users can batch export entire domains and get CSV exports for analysis."
+                }
+              ].map((faq, index) => (
+                <div key={index} className="border border-border rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => toggleFaq(index)}
+                    className="w-full flex items-center justify-between p-6 text-left hover:bg-muted/50 transition-colors min-h-[56px]"
+                    aria-expanded={faqOpen === index}
+                  >
+                    <span className="font-semibold pr-4">{faq.q}</span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-muted-foreground transition-transform flex-shrink-0 ${
+                        faqOpen === index ? 'transform rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  {faqOpen === index && (
+                    <div className="px-6 pb-6 text-muted-foreground">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -373,22 +606,140 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-background border-t border-border">
+      <footer className="py-16 bg-background border-t border-border">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/images/logo.png"
-                alt="Snappy"
-                width={40}
-                height={40}
-                className="rounded-lg"
-              />
-              <span className="font-semibold">Snappy</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            {/* Brand */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/images/logo.png"
+                  alt="Snappy"
+                  width={40}
+                  height={40}
+                  className="rounded-lg"
+                />
+                <span className="font-semibold text-lg">Snappy</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Capture. Extract. Build. The fastest way to turn any website into production-ready code.
+              </p>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://github.com/nadalpiantini/snappycrawler"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-label="GitHub"
+                >
+                  <Github className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://twitter.com/snappycrawler"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-label="Twitter"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a
+                  href="mailto:hello@snappycrawler.com"
+                  className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-label="Email"
+                >
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <span>Built with Next.js + Supabase + Tailwind</span>
+            {/* Product */}
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <a href="/snappy-extension.zip" download className="text-muted-foreground hover:text-foreground transition-colors">
+                    Download Extension
+                  </a>
+                </li>
+                <li>
+                  <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+                    How It Works
+                  </a>
+                </li>
+                <li>
+                  <a href="#use-cases" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Use Cases
+                  </a>
+                </li>
+                <li>
+                  <Link href="/snapshots" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Gallery
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h4 className="font-semibold mb-4">Resources</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Documentation
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    API Reference
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Tutorials
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Blog
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Terms of Service
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Cookie Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Security
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-border">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+              <p>&copy; 2025 Snappy. Built with Next.js + Supabase + Tailwind</p>
+              <p>Made with ❤️ for developers who ship fast</p>
             </div>
           </div>
         </div>
