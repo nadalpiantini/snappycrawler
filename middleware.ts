@@ -81,13 +81,17 @@ export async function middleware(request: NextRequest) {
   // Refresh session if expired
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protected routes - redirect to login if not authenticated
+  // Check if auth is enabled
+  const authEnabled = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true'
+
+  // Protected routes - redirect to login if not authenticated (ONLY when auth is enabled)
   const protectedRoutes = ['/snapshots', '/dashboard', '/projects']
   const isProtectedRoute = protectedRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
   )
 
-  if (isProtectedRoute && !user) {
+  // Only enforce auth protection if auth is enabled
+  if (authEnabled && isProtectedRoute && !user) {
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
