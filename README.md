@@ -2,6 +2,8 @@
 
 **Turn any webpage into structured code specifications**
 
+[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-success)](https://github.com)
+[![Version](https://img.shields.io/badge/Version-2.1.0-blue)](https://github.com)
 [![TDD](https://img.shields.io/badge/TDD-Test%20Driven%20Development-green)](https://en.wikipedia.org/wiki/Test-driven_development)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.4-black)](https://nextjs.org/)
