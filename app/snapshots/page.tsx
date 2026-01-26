@@ -268,7 +268,13 @@ export default function SnapshotsPage() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5">
-              <Globe className="w-16 h-16 text-primary/30 group-hover:scale-110 transition-transform duration-300" />
+              <Image
+                src="/images/camera-icon.png"
+                alt="No screenshot"
+                width={64}
+                height={64}
+                className="w-16 h-16 opacity-30 group-hover:scale-110 transition-transform duration-300 rounded-xl"
+              />
             </div>
           )}
 
@@ -337,7 +343,13 @@ export default function SnapshotsPage() {
           />
         ) : (
           <div className="w-24 h-16 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Globe className="w-8 h-8 text-primary/30" />
+            <Image
+              src="/images/camera-icon.png"
+              alt="No screenshot"
+              width={32}
+              height={32}
+              className="w-8 h-8 opacity-30 rounded-lg"
+            />
           </div>
         )}
         <div className="flex-1 min-w-0">
@@ -403,7 +415,13 @@ export default function SnapshotsPage() {
                 />
               ) : (
                 <div className="w-full h-80 md:h-96 flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5">
-                  <Globe className="w-20 h-20 text-primary/30 mb-4" />
+                  <Image
+                    src="/images/camera-icon.png"
+                    alt="No screenshot"
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 opacity-30 mb-4 rounded-2xl"
+                  />
                   <p className="text-muted-foreground">No screenshot available</p>
                 </div>
               )}
