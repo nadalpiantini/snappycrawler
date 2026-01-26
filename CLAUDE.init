@@ -1,0 +1,91 @@
+# Snappy Platform - Design & Branding Guidelines
+
+## Landing Page Status
+**APPROVED** - The current landing page design is the reference for ALL subpages and extensions.
+
+## Brand Identity
+
+### Color Palette (Dark Theme - Default)
+| Token | HSL | Hex | Usage |
+|-------|-----|-----|-------|
+| --background | 230 25% 10% | #1A1A2E | Main background |
+| --foreground | 40 20% 95% | #F5F3EF | Primary text |
+| --card | 230 25% 14% | #232340 | Cards, panels |
+| --primary | 142 71% 45% | #4ADE80 | Snappy Green (CTAs, highlights) |
+| --secondary | 200 45% 30% | #3B6B7C | Teal accent (logo rim) |
+| --accent | 35 30% 75% | #D4C5A9 | Tan/cream complement |
+| --muted | 230 20% 20% | #2A2A3D | Muted backgrounds |
+| --border | 230 20% 20% | #2A2A3D | Borders |
+
+### Typography
+- **Font Family**: Inter (Google Fonts)
+- **Font Smoothing**: antialiased, grayscale
+- **Hero Title**: 5xl-7xl bold
+- **Section Title**: 3xl-4xl bold
+- **Body**: Base size, muted-foreground color
+
+### Visual Effects
+- **Glow Effect (.glow-green)**:
+  ```css
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.5),
+               0 0 40px rgba(74, 222, 128, 0.3);
+  ```
+- **Border Radius**: 0.5rem (8px) standard, rounded-xl (16px) for cards
+
+### Logo
+- **Location**: /public/images/logo.png
+- **Dimensions**: 240x240px (responsive scaling)
+- **Border Radius**: rounded-xl (16px)
+
+## Design Patterns
+
+### Card Pattern
+```css
+background: var(--card);
+padding: 24px;
+border-radius: 12px;
+border: 1px solid var(--border);
+```
+
+### Button Pattern (Primary)
+```css
+background: var(--primary);
+color: var(--background);
+border-radius: 8px;
+font-weight: 600;
+transition: all 0.2s;
+```
+Hover: `background: var(--primary) / 0.9`
+
+### Icon Circles
+```css
+width: 64px;
+height: 64px;
+background: var(--primary) / 0.2;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+```
+
+## Subpages Checklist
+All subpages MUST include:
+- [ ] Logo in header (40x40px)
+- [ ] Dark navy background (#1A1A2E)
+- [ ] Snappy Green for primary actions (#4ADE80)
+- [ ] Inter font family
+- [ ] Consistent spacing (py-24 sections, gap-6 grids)
+- [ ] Border-border styling on cards
+
+## Chrome Extension Requirements
+The Chrome extension MUST match the landing page branding:
+- [ ] Same color palette (dark navy + snappy green)
+- [ ] Include logo.png in extension
+- [ ] Inter font (via CSS import or embed)
+- [ ] Same button styling
+- [ ] Same glow effects where applicable
+- [ ] Consistent border-radius (8px)
+
+---
+*This file is the single source of truth for Snappy branding.*
+*Last updated: 2026-01-25*
