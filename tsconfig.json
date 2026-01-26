@@ -38,6 +38,8 @@
   "exclude": [
     "node_modules",
     "cli.ts",
+    "cli-integration.ts",
+    "lib/cli-integration.ts",
     "scripts/**/*"
   ]
 }

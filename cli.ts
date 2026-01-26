@@ -579,5 +579,257 @@ program
     }
   })
 
+// Pull command - Retrieve and analyze existing snapshots
+program
+  .command('pull <snapshot-id>')
+  .description('Pull and analyze a snapshot from the database')
+  .option('--design', 'Extract design tokens')
+  .option('--ux', 'Extract UX intelligence')
+  .option('--wireframe', 'Generate wireframe')
+  .option('--ai', 'Generate AI context')
+  .option('--all', 'Run all analysis modes')
+  .action(async (options) => {
+    const { snapshotId, design, ux, wireframe, ai, all } = options
+
+    log(`📥 Snappy Pull v2.1`, 'bright')
+    log(``, 0)
+    logInfo(`Snapshot ID: ${snapshotId}`)
+    const modes = []
+    if (all || design) modes.push('design')
+    if (all || ux) modes.push('ux')
+    if (all || wireframe) modes.push('wireframe')
+    if (all || ai) modes.push('ai-context')
+    logInfo(`Modes: ${modes.join(', ') || 'all'}`)
+    log(``, 0)
+
+    try {
+      // Fetch snapshot from database
+      logProgress('Fetching snapshot from database...')
+      const response = await fetch(`${API_URL}/${snapshotId}`)
+
+      if (!response.ok) {
+        throw new Error(`Snapshot not found: ${snapshotId}`)
+      }
+
+      const { data } = await response.json()
+
+      if (!data) {
+        throw new Error('No data returned from database')
+      }
+
+      const snapshot = data.raw_data || data
+
+      logSuccess(`Snapshot loaded: ${snapshot.title || snapshot.url}`)
+
+      // Run requested analysis modes using real functions
+      const results: any = {}
+
+      if (all || design) {
+        logProgress('Analyzing design tokens...')
+        results.design = await analyzeDesignFromSnapshot(data)
+        logSuccess('Design tokens extracted')
+      }
+
+      if (all || ux) {
+        logProgress('Analyzing UX intelligence...')
+        results.ux = await analyzeUXFromSnapshot(data)
+        logSuccess('UX intelligence extracted')
+      }
+
+      if (all || wireframe) {
+        logProgress('Generating wireframe...')
+        results.wireframe = await analyzeWireframeFromSnapshot(data)
+        logSuccess('Wireframe generated')
+      }
+
+      if (all || ai) {
+        logProgress('Generating AI context...')
+        results.aiContext = await analyzeAIContextFromSnapshot(data)
+        logSuccess('AI context generated')
+      }
+
+      // Display results summary
+      log(``, 0)
+      log(`📊 ANALYSIS RESULTS`, 'bright')
+      log(``, 0)
+
+      if (results.design) {
+        log(`Design Tokens:`, 'cyan')
+        log(`  Colors: ${Object.keys(results.design.colors || {}).length}`)
+        log(`  Typography: ${Object.keys(results.design.typography || {}).length}`)
+        log(`  Spacing: ${Object.keys(results.design.spacing || {}).length}`)
+        log(``, 0)
+      }
+
+      if (results.ux) {
+        log(`UX Intelligence:`, 'cyan')
+        log(`  CTAs detected: ${results.ux.ctas?.length || 0}`)
+        log(`  Forms: ${results.ux.forms?.length || 0}`)
+        log(`  Accessibility score: ${results.ux.accessibility?.score || 'N/A'}`)
+        log(``, 0)
+      }
+
+      if (results.wireframe) {
+        log(`Wireframe:`, 'cyan')
+        log(`  Layout: ${results.wireframe.structure?.type}`)
+        log(`  Blocks: ${results.wireframe.blocks?.length || 0}`)
+        log(`  Flows: ${results.wireframe.flows?.length || 0}`)
+        log(``, 0)
+      }
+
+      if (results.aiContext) {
+        log(`AI Context:`, 'cyan')
+        log(`  Page type: ${results.aiContext.systemBrief?.overview?.pageType}`)
+        log(`  Components: ${results.aiContext.codeSchema?.components?.length || 0}`)
+        log(`  Constraints: ${results.aiContext.constraints?.technical?.length || 0}`)
+        log(``, 0)
+      }
+
+      // Save results to file
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const outputFile = `snappy-analysis-${timestamp}.json`
+
+      require('fs').writeFileSync(outputFile, JSON.stringify(results, null, 2))
+      logSuccess(`Full analysis saved to: ${outputFile}`)
+
+    } catch (error) {
+      logError(`Error: ${error.message}`)
+      process.exit(1)
+    }
+  })
+
+// Compare command - Compare multiple snapshots
+program
+  .command('compare <snapshotId1> <snapshotId2>')
+  .description('Compare two snapshots')
+  .option('--output <file>', 'Output file for comparison report')
+  .action(async (options) => {
+    const { snapshotId1, snapshotId2, output } = options
+
+    log(`🔍 Snappy Compare v2.1`, 'bright')
+    log(``, 0)
+    logInfo(`Comparing snapshots:`)
+    logInfo(`  1. ${snapshotId1}`)
+    logInfo(`  2. ${snapshotId2}`)
+    log(``, 0)
+
+    try {
+      // Fetch both snapshots
+      logProgress('Fetching snapshots...')
+
+      const [response1, response2] = await Promise.all([
+        fetch(`${API_URL}/${snapshotId1}`),
+        fetch(`${API_URL}/${snapshotId2}`)
+      ])
+
+      if (!response1.ok || !response2.ok) {
+        throw new Error('One or more snapshots not found')
+      }
+
+      const { data: data1 } = await response1.json()
+      const { data: data2 } = await response2.json()
+
+      const snapshot1 = data1.raw_data || data1
+      const snapshot2 = data2.raw_data || data2
+
+      logSuccess('Snapshots loaded')
+
+      // Run comparison
+      logProgress('Comparing snapshots...')
+
+      const comparison = await compareSnapshotsFromDB(snapshot1, snapshot2)
+
+      logSuccess('Comparison complete')
+
+      // Display summary
+      log(``, 0)
+      log(`📊 COMPARISON RESULTS`, 'bright')
+      log(``, 0)
+      log(`URL 1: ${snapshot1.url}`)
+      log(`URL 2: ${snapshot2.url}`)
+      log(``, 0)
+      log(`Differences found: ${comparison.differences.total || 0}`)
+      log(`  Layout: ${comparison.differences.layout || 'same'}`)
+      log(`  Colors: ${comparison.differences.colors || 'same'}`)
+      log(`  Components: ${comparison.differences.components || 'same'}`)
+
+      // Save comparison
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const outputFile = output || `snappy-comparison-${timestamp}.json`
+
+      require('fs').writeFileSync(outputFile, JSON.stringify(comparison, null, 2))
+      logSuccess(`Comparison saved to: ${outputFile}`)
+
+    } catch (error) {
+      logError(`Error: ${error.message}`)
+      process.exit(1)
+    }
+  })
+
+// List command - List all snapshots
+program
+  .command('list')
+  .description('List all snapshots in the database')
+  .option('--limit <number>', 'Maximum number to show', '20')
+  .action(async (options) => {
+    const { limit } = options
+
+    log(`📋 Snappy List v2.1`, 'bright')
+    log(``, 0)
+
+    try {
+      logProgress('Fetching snapshots...')
+
+      const response = await fetch(API_URL)
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch snapshots')
+      }
+
+      const { data: snapshots } = await response.json()
+
+      logSuccess(`Found ${snapshots?.length || 0} snapshot(s)`)
+      log(``, 0)
+
+      // Display snapshots
+      const displaySnapshots = (snapshots || []).slice(0, parseInt(limit))
+
+      if (displaySnapshots.length === 0) {
+        logInfo('No snapshots found')
+        return
+      }
+
+      displaySnapshots.forEach((snap: any, index: number) => {
+        const created = new Date(snap.created_at).toLocaleDateString()
+        log(`${index + 1}. ${snap.title || snap.url}`, 'cyan')
+        log(`   ID: ${snap.id}`)
+        log(`   URL: ${snap.url}`)
+        log(`   Created: ${created}`)
+        log(``, 0)
+      })
+
+      if ((snapshots || []).length > parseInt(limit)) {
+        logInfo(`...and ${(snapshots.length - parseInt(limit))} more`)
+      }
+
+    } catch (error) {
+      logError(`Error: ${error.message}`)
+      process.exit(1)
+    }
+  })
+
 // Parse arguments
 program.parse()
+
+// ============================================
+// IMPORT REAL MODULES
+// ============================================
+
+const {
+  analyzeDesignFromSnapshot,
+  analyzeUXFromSnapshot,
+  analyzeWireframeFromSnapshot,
+  analyzeAIContextFromSnapshot,
+  compareSnapshotsFromDB,
+  runFullAnalysis
+} = require('./lib/cli-integration')

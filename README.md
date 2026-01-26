@@ -167,47 +167,186 @@ snappy-platform/
 | **Database** | PostgreSQL | Relational, JSONB support |
 | **Testing** | Vitest | Fast, native ESM |
 | **Types** | TypeScript | Type safety |
+| **CLI** | Commander | Terminal interface |
+| **Crawling** | Playwright | Browser automation |
+
+---
+
+## 🚀 CLI Usage
+
+```bash
+# Capture a webpage
+snappy crawl https://example.com --max-pages 10
+
+# Audit a page
+snappy audit https://example.com
+
+# Test buttons
+snappy test-buttons https://example.com
+
+# Pull and analyze existing snapshot
+snappy pull <snapshot-id> --all
+
+# Pull specific modes
+snappy pull <snapshot-id> --design
+snappy pull <snapshot-id> --ux
+snappy pull <snapshot-id> --wireframe
+snappy pull <snapshot-id> --ai
+
+# Compare two snapshots
+snappy compare <snapshot-id1> <snapshot-id2>
+
+# List all snapshots
+snappy list
+```
+
+---
+
+## 🎨 Analysis Modes
+
+### MODE 1: Snapshot
+Capture raw page data including HTML, text, interactions, and metadata.
+
+### MODE 2: Design Forensics
+Extract design tokens from captured pages:
+- **Typography**: Font families, sizes, weights, line heights
+- **Colors**: Color palettes with usage percentages
+- **Spacing**: Padding, margin, gap scales
+- **Effects**: Border radius, shadows
+
+**Outputs**: `design-tokens.json`, `tokens.css`, `design-summary.md`
+
+### MODE 3: UX Intelligence
+Analyze user experience patterns:
+- **CTA Analysis**: Call-to-action detection and scoring
+- **Form Analysis**: Form patterns, validation, fields
+- **Navigation**: Nav structure, breadcrumbs, menus
+- **Flows**: User journey detection
+- **Accessibility**: WCAG compliance scoring
+
+**Outputs**: `ux-intent.md`, `ux-critique.md`, `ux-evidence.json`
+
+### MODE 4: Wireframe Engine
+Generate visual wireframes:
+- **Layout Detection**: Column structure, sections, blocks
+- **Hierarchy**: Visual organization and levels
+- **ASCII Export**: Text-based wireframes for terminal
+- **Designer Prompts**: AI-ready prompts for designers
+- **Figma JSON**: Optional Figma-compatible format
+
+**Outputs**: `wireframe.md`, `ascii.txt`, `designer-prompt.md`
+
+### MODE 5: AI Context Pack
+Generate AI-optimized context:
+- **System Brief**: Overview, objectives, constraints
+- **Constraints**: Technical, business, design, negative
+- **Code Schema**: Component definitions, props, state
+- **System Prompts**: Developer, designer, PM, LLM prompts
+- **Suggested Tasks**: Prioritized implementation tasks
+
+**Outputs**: `ai-context.md`, `system-prompt.txt`, `code-schema.json`
+
+### MODE 6: Compare
+Compare multiple snapshots:
+- **Visual Diff**: Layout, color, typography changes
+- **UX Comparison**: Flow changes, interaction patterns
+- **Content Comparison**: Structural, text, media changes
+- **Technical Comparison**: Performance, complexity metrics
+- **Opportunities**: Improvement recommendations
+
+**Outputs**: `compare-report.md`, `compare-matrix.json`
+
+### Brain LLM Layer
+Cross-mode reasoning:
+- **Insights**: Actionable insights from all modes
+- **Patterns**: Cross-domain pattern detection
+- **Intent Inference**: User and business goal inference
+- **Explanations**: Human-readable explanations
+
+**Output**: `brain-analysis.json`
 
 ---
 
 ## 📊 Database Schema
 
 ```sql
-profiles          -- User profiles
-snapshots         -- Raw page snapshots
-normalized        -- Normalized structure
-projects          -- Group snapshots
-legal_safe        -- Sanitized versions
+snappy_profiles     -- User profiles
+snappy_snapshots    -- Raw page snapshots
+snappy_normalized  -- Normalized structure
+snappy_projects    -- Group snapshots
 ```
 
 See: `supabase/migrations/001_initial_schema.sql`
 
 ---
 
-## 🔐 Features
+## 📁 Project Structure
 
-### ✅ MVP (Phase 1)
-- [x] Upload snapshot (drag & drop)
-- [x] Normalize automatically
-- [x] View snapshot structure
-- [x] List all snapshots
-- [x] Delete snapshots
-- [x] Database persistence
-
-### 🚧 Core (Phase 2)
-- [ ] User authentication
-- [ ] Multi-tenant support
-- [ ] Dashboard with projects
-- [ ] Claude API integration
-- [ ] Prompt builder
-- [ ] Code export
-
-### 🎯 Complete (Phase 3)
-- [ ] Diff viewer (compare snapshots)
-- [ ] Share snapshots
-- [ ] Version history
-- [ ] Advanced filters
-- [ ] Export multiple formats
+```
+snappycrawler/
+├── lib/
+│   ├── design-forensics/     ✅ MODE 2 COMPLETE
+│   │   ├── analyzer.ts
+│   │   ├── typography.ts
+│   │   ├── colors.ts
+│   │   ├── spacing.ts
+│   │   ├── generators.ts
+│   │   └── types.ts
+│   │
+│   ├── ux-intelligence/      ✅ MODE 3 COMPLETE
+│   │   ├── analyzer.ts
+│   │   ├── cta-detector.ts
+│   │   ├── form-analyzer.ts
+│   │   ├── flow-detector.ts
+│   │   ├── generators.ts
+│   │   └── types.ts
+│   │
+│   ├── wireframe-engine/      ✅ MODE 4 COMPLETE
+│   │   ├── analyzer.ts
+│   │   ├── generators.ts
+│   │   ├── types.ts
+│   │   └── index.ts
+│   │
+│   ├── ai-context/            ✅ MODE 5 COMPLETE
+│   │   ├── analyzer.ts
+│   │   ├── generators.ts
+│   │   ├── types.ts
+│   │   └── index.ts
+│   │
+│   ├── compare/               ✅ MODE 6 COMPLETE
+│   │   ├── analyzer.ts
+│   │   ├── generators.ts
+│   │   ├── types.ts
+│   │   └── index.ts
+│   │
+│   ├── brain-llm/             ✅ BRAIN LLM COMPLETE
+│   │   ├── analyzer.ts
+│   │   ├── types.ts
+│   │   └── index.ts
+│   │
+│   ├── copy-semantics/        ✅ COPY SEMANTICS COMPLETE
+│   │   └── index.ts
+│   │
+│   ├── visual-hierarchy/      ✅ VISUAL HIERARCHY COMPLETE
+│   │   └── index.ts
+│   │
+│   ├── normalizer.ts          ✅
+│   ├── legal-safe.ts          ✅
+│   ├── supabase/              ✅
+│   └── types.ts               ✅
+│
+├── tests/
+│   ├── design-forensics.test.ts  ✅
+│   ├── ux-intelligence.test.ts   ✅
+│   ├── normalize.test.ts         ✅
+│   ├── legal-safe.test.ts        ✅
+│   └── supabase.test.ts          ✅
+│
+├── cli.ts                     ✅ ENHANCED WITH PULL/COMPARE
+├── extension/                 ✅ Chrome + bookmarklet
+├── supabase/migrations/       ✅ 4 migrations
+└── app/                       ✅ Next.js frontend
+```
 
 ---
 
