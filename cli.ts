@@ -818,6 +818,184 @@ program
     }
   })
 
+// ============================================
+// CONFIG COMMANDS - DeepSeek Token Management
+// ============================================
+
+// Set API token
+program
+  .command('config:set-token <apiKey>')
+  .description('Set your DeepSeek API token (saved locally)')
+  .action(async (apiKey) => {
+    const { saveToken } = require('./lib/llm')
+
+    try {
+      saveToken(apiKey, 'deepseek')
+      logSuccess('✅ DeepSeek API token saved successfully')
+      log(`   Location: ~/.snappycrawler/tokens.json`)
+      log(`   Provider: DeepSeek`)
+    } catch (error) {
+      logError(`Error saving token: ${error.message}`)
+      process.exit(1)
+    }
+  })
+
+// Show current token status
+program
+  .command('config:status')
+  .description('Show current API token configuration')
+  .action(async () => {
+    const { hasToken, loadToken } = require('./lib/llm')
+
+    try {
+      log(`🔑 API Configuration Status`, 'bright')
+      log(``)
+
+      if (hasToken()) {
+        const token = loadToken()
+        const masked = token?.substring(0, 8) + '...' + token?.substring(token.length - 4)
+        logSuccess('✅ Token found')
+        log(`   Token: ${masked}`)
+        log(`   Location: ~/.snappycrawler/tokens.json`)
+        log(`   Provider: DeepSeek`)
+      } else {
+        logInfo('❌ No token found')
+        log(``)
+        log(`To set your token:`)
+        log(`  snappy config:set-token <your-api-key>`)
+        log(``)
+        log(`Get your API key from: https://platform.deepseek.com/api_keys`)
+      }
+
+      // Check environment variable
+      if (process.env.DEEPSEEK_API_KEY) {
+        log(``)
+        logSuccess('✅ Environment variable also set')
+        log(`   DEEPSEEK_API_KEY: *** (found)`)
+      }
+
+    } catch (error) {
+      logError(`Error: ${error.message}`)
+      process.exit(1)
+    }
+  })
+
+// Clear saved token
+program
+  .command('config:clear-token')
+  .description('Remove saved API token')
+  .action(async () => {
+    const { clearToken, hasToken } = require('./lib/llm')
+
+    try {
+      if (!hasToken()) {
+        logInfo('No token found to clear')
+        return
+      }
+
+      clearToken()
+      logSuccess('✅ Token cleared successfully')
+    } catch (error) {
+      logError(`Error: ${error.message}`)
+      process.exit(1)
+    }
+  })
+
+// Test API connection
+program
+  .command('config:test')
+  .description('Test DeepSeek API connection')
+  .action(async () => {
+    const { hasToken, getLLMConfig } = require('./lib/llm')
+    const { DeepSeekClient } = require('./lib/llm/deepseek-client')
+
+    try {
+      log(`🧪 Testing DeepSeek API Connection`, 'bright')
+      log(``)
+
+      if (!hasToken() && !process.env.DEEPSEEK_API_KEY) {
+        logError('❌ No API token found')
+        log(``)
+        log(`Set your token first: snappy config:set-token <your-api-key>`)
+        process.exit(1)
+      }
+
+      logProgress('Connecting to DeepSeek API...')
+
+      const client = new DeepSeekClient()
+      const response = await client.sendMessage(
+        'You are a helpful assistant.',
+        'Say "Connection successful!" in exactly those words.'
+      )
+
+      logSuccess('✅ Connection successful!')
+      log(``)
+      log(`Response: ${response}`)
+      log(``)
+      log(`Your DeepSeek API is working correctly.`)
+
+    } catch (error) {
+      logError(`❌ Connection failed`)
+      log(`   Error: ${error.message}`)
+      process.exit(1)
+    }
+  })
+
+// Show prompt examples
+program
+  .command('config:prompts')
+  .description('Show example prompts for DeepSeek')
+  .action(async () => {
+    const { generateDeveloperPrompt, generateCodePrompt } = require('./lib/llm/prompts')
+
+    log(`📝 DeepSeek Prompt Examples`, 'bright')
+    log(``)
+
+    const brief = {
+      overview: {
+        pageTitle: 'Example App',
+        url: 'https://example.com',
+        pageType: 'landing page',
+        primaryPurpose: 'Convert visitors',
+        targetUsers: ['developers'],
+        coreValue: 'Save time'
+      },
+      context: {
+        businessDomain: 'Developer Tools',
+        companyStage: 'growth',
+        marketPosition: 'B2B SaaS'
+      },
+      objectives: [],
+      constraints: [],
+      assumptions: []
+    }
+
+    const constraints = {
+      technical: [],
+      business: [],
+      design: [],
+      negative: []
+    }
+
+    logInfo('Example: Developer Prompt')
+    log(`─────────────────────────────────────`)
+    const devPrompt = generateDeveloperPrompt(brief, constraints)
+    log(devPrompt.substring(0, 500) + '...')
+    log(``)
+
+    logInfo('Example: Code Generation Prompt')
+    log(`─────────────────────────────────────`)
+    const codePrompt = generateCodePrompt('Create a user profile card', {
+      language: 'TypeScript',
+      framework: 'React',
+      patterns: ['functional components', 'hooks']
+    })
+    log(codePrompt.substring(0, 500) + '...')
+    log(``)
+
+    log(`Full prompts are optimized for DeepSeek Chat API.`)
+  })
+
 // Parse arguments
 program.parse()
 

@@ -19,7 +19,12 @@
     "snappy": "ts-node cli.ts",
     "crawl": "ts-node cli.ts crawl",
     "audit": "ts-node cli.ts audit",
-    "test-buttons": "ts-node cli.ts test-buttons"
+    "test-buttons": "ts-node cli.ts test-buttons",
+    "config:set-token": "ts-node cli.ts config:set-token",
+    "config:status": "ts-node cli.ts config:status",
+    "config:test": "ts-node cli.ts config:test",
+    "config:clear-token": "ts-node cli.ts config:clear-token",
+    "config:prompts": "ts-node cli.ts config:prompts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",

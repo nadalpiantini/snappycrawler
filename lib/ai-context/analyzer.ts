@@ -4,6 +4,13 @@
 
 import { RawSnapshot } from '../types'
 import {
+  generateDeveloperPrompt as deepSeekDeveloperPrompt,
+  generateDesignerPrompt as deepSeekDesignerPrompt,
+  generatePMPrompt as deepSeekPMPrompt,
+  generateLLMPrompt as deepSeekLLMPrompt,
+  generateGenericPrompt as deepSeekGenericPrompt
+} from '../llm/prompts'
+import {
   AIContextInput,
   AIContextOutput,
   AIContextMeta,
@@ -105,6 +112,26 @@ Has Design Tokens: ${!!input.designTokens}
 Has UX Analysis: ${!!input.uxAnalysis}
 Has Wireframe: ${!!input.wireframe}
   `.trim()
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+function calculateConfidence(input: AIContextInput): number {
+  const scores: number[] = []
+
+  // Has snapshot data
+  if (input.snapshot?.html) scores.push(0.3)
+  if (input.snapshot?.text?.length > 0) scores.push(0.2)
+
+  // Has additional analysis
+  if (input.designTokens) scores.push(0.2)
+  if (input.uxAnalysis) scores.push(0.15)
+  if (input.wireframe) scores.push(0.15)
+
+  const confidence = scores.reduce((sum, score) => sum + score, 0)
+  return Math.min(1, confidence)
 }
 
 // ============================================
@@ -908,130 +935,23 @@ function generateSystemPrompts(
 }
 
 function generateDeveloperPrompt(brief: SystemBrief, constraints: Constraints): string {
-  return `
-You are a senior software developer specializing in React/Next.js development.
-
-CONTEXT:
-${JSON.stringify(brief, null, 2)}
-
-CONSTRAINTS:
-${JSON.stringify(constraints, null, 2)}
-
-Your task is to generate clean, maintainable code that:
-1. Follows React best practices and hooks patterns
-2. Implements proper TypeScript typing
-3. Ensures accessibility (WCAG 2.1 AA)
-4. Optimizes for performance
-5. Includes comprehensive error handling
-6. Writes testable code with clear separation of concerns
-
-Always prefer functional components with hooks over class components.
-Use composition over inheritance.
-Write self-documenting code with clear naming conventions.
-  `.trim()
+  return deepSeekDeveloperPrompt(brief, constraints)
 }
 
 function generateDesignerPrompt(brief: SystemBrief, constraints: Constraints): string {
-  return `
-You are a UI/UX designer specializing in modern web interfaces.
-
-CONTEXT:
-${JSON.stringify(brief, null, 2)}
-
-CONSTRAINTS:
-${JSON.stringify(constraints.design, null, 2)}
-
-Your task is to design interfaces that:
-1. Follow established design systems
-2. Ensure visual consistency
-3. Create clear information hierarchy
-4. Design for accessibility and inclusion
-5. Optimize for user flows and conversion
-6. Consider responsive design requirements
-
-Focus on user needs and business goals.
-Create designs that are both beautiful and functional.
-  `.trim()
+  return deepSeekDesignerPrompt(brief, constraints)
 }
 
 function generatePMPrompt(brief: SystemBrief, constraints: Constraints): string {
-  return `
-You are a technical product manager.
-
-CONTEXT:
-${JSON.stringify(brief, null, 2)}
-
-CONSTRAINTS:
-${JSON.stringify(constraints.business, null, 2)}
-
-Your task is to:
-1. Define clear acceptance criteria
-2. Prioritize features by value and effort
-3. Identify dependencies and risks
-4. Create actionable user stories
-5. Define success metrics
-6. Consider technical constraints
-
-Focus on delivering value to users while meeting business objectives.
-  `.trim()
+  return deepSeekPMPrompt(brief, constraints)
 }
 
 function generateLLMPrompt(brief: SystemBrief, constraints: Constraints): string {
-  return `
-You are an AI coding assistant with expertise in web development.
-
-CONTEXT:
-${JSON.stringify(brief, null, 2)}
-
-CONSTRAINTS:
-${JSON.stringify(constraints, null, 2)}
-
-Generate code that:
-1. Is production-ready and follows best practices
-2. Includes proper error handling and validation
-3. Is well-typed with TypeScript
-4. Has clear documentation
-5. Is performant and efficient
-6. Considers accessibility from the start
-
-Always explain your reasoning and provide context for your decisions.
-Suggest improvements when you see opportunities.
-  `.trim()
+  return deepSeekLLMPrompt(brief, constraints)
 }
 
 function generateGenericPrompt(brief: SystemBrief, constraints: Constraints): string {
-  return `
-You are helping build a modern web application.
-
-CONTEXT:
-${JSON.stringify(brief, null, 2)}
-
-CONSTRAINTS:
-${JSON.stringify(constraints, null, 2)}
-
-Focus on:
-1. User experience and accessibility
-2. Code quality and maintainability
-3. Performance and optimization
-4. Security best practices
-5. Clear communication
-
-Provide actionable recommendations and code examples.
-  `.trim()
-}
-
-// ============================================
-// UTILITIES
-// ============================================
-
-function calculateConfidence(input: AIContextInput): number {
-  let confidence = 0.7
-
-  if (input.designTokens) confidence += 0.1
-  if (input.uxAnalysis) confidence += 0.1
-  if (input.wireframe) confidence += 0.1
-
-  return Math.min(1, confidence)
+  return deepSeekGenericPrompt(brief, constraints)
 }
 
 export function getDefaultAIContextOutput(): AIContextOutput {

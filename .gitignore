@@ -52,6 +52,10 @@ Thumbs.db
 # Supabase
 .supabase/
 
+# DeepSeek / LLM Tokens
+.snappycrawler/
+*.tokens.json
+
 # Temp
 *.tmp
 *.temp
