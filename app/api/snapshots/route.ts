@@ -1,23 +1,53 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-// Use service role key to bypass RLS for reading
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+async function getSupabaseClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Ignore if called from Server Component
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(request: Request) {
   try {
+    const supabase = await getSupabaseClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
     if (id) {
-      // Get single snapshot by ID
+      // Get single snapshot by ID (must belong to user)
       const { data, error } = await supabase
         .from('snappy_snapshots')
         .select('*')
         .eq('id', id)
+        .eq('user_id', user.id)
         .single()
 
       if (error) {
@@ -28,10 +58,11 @@ export async function GET(request: Request) {
       return NextResponse.json(data)
     }
 
-    // Get all snapshots (limited to 50)
+    // Get user's snapshots (limited to 50)
     const { data, error } = await supabase
       .from('snappy_snapshots')
       .select('id, url, title, created_at')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50)
 

@@ -9,6 +9,7 @@ import { RawSnapshot } from '@/lib/types'
 import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download, User, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/browser'
+import { Header } from '@/components/Header'
 
 const HERO_VIDEOS = [
   '/videos/hero-1.mp4',
@@ -51,42 +52,21 @@ export default function HomePage() {
   if (snapshot) {
     return (
       <div className="min-h-screen bg-background">
+        <Header variant="app" />
         <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <header className="flex items-center justify-between mb-8">
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/images/logo.png"
-                alt="Snappy"
-                width={48}
-                height={48}
-                className="rounded-lg"
-              />
-              <span className="text-xl font-bold">Snappy</span>
-            </Link>
-            <div className="flex items-center gap-2">
-              {isLoggedIn && (
-                <Button variant="outline" asChild>
-                  <Link href="/snapshots">
-                    <FolderOpen className="w-4 h-4 mr-2" />
-                    My Snapshots
-                  </Link>
-                </Button>
-              )}
-              <Button variant="outline" onClick={handleReset}>
-                New Snapshot
-              </Button>
-            </div>
-          </header>
-
-          {/* Viewer */}
-          <div className="space-y-6">
-            <div>
+          {/* Viewer Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="space-y-1">
               <h2 className="text-2xl font-bold">Snapshot Ready</h2>
               <p className="text-muted-foreground truncate max-w-xl">{snapshot.url}</p>
             </div>
-            <SnapshotViewer snapshot={snapshot} />
+            <Button variant="outline" onClick={handleReset}>
+              New Snapshot
+            </Button>
           </div>
+
+          {/* Viewer */}
+          <SnapshotViewer snapshot={snapshot} />
         </div>
       </div>
     )
@@ -129,22 +109,22 @@ export default function HomePage() {
                   Extension
                 </a>
               </Button>
-              {isLoggedIn !== null && (
-                isLoggedIn ? (
-                  <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
-                    <Link href="/snapshots">
-                      <FolderOpen className="w-4 h-4 mr-1" />
-                      My Snapshots
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
-                    <Link href="/login">
-                      <User className="w-4 h-4 mr-1" />
-                      Login
-                    </Link>
-                  </Button>
-                )
+              {isLoggedIn === null ? (
+                <div className="w-28 h-8 bg-white/10 rounded-md animate-pulse" />
+              ) : isLoggedIn ? (
+                <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
+                  <Link href="/snapshots">
+                    <FolderOpen className="w-4 h-4 mr-1" />
+                    My Snapshots
+                  </Link>
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
+                  <Link href="/login">
+                    <User className="w-4 h-4 mr-1" />
+                    Login
+                  </Link>
+                </Button>
               )}
               <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={scrollToUpload}>
                 Try Now

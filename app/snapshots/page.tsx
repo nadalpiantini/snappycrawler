@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { RawSnapshot } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Header } from '@/components/Header'
 
 interface SnapshotItem {
   id: string
@@ -22,11 +23,14 @@ export default function SnapshotsPage() {
   const [snapshots, setSnapshots] = useState<SnapshotItem[]>([])
   const [filteredSnapshots, setFilteredSnapshots] = useState<SnapshotItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedSnapshot, setSelectedSnapshot] = useState<SnapshotItem | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'url'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  type SortOption = 'date' | 'title' | 'url'
 
   useEffect(() => {
     loadSnapshots()
@@ -36,23 +40,19 @@ export default function SnapshotsPage() {
     filterAndSortSnapshots()
   }, [snapshots, searchQuery, sortBy, sortOrder])
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
   async function loadSnapshots() {
+    setError(null)
     try {
       const response = await fetch('/api/snapshots')
       if (!response.ok) {
-        console.error('Error loading snapshots:', response.statusText)
-        return
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to load snapshots')
       }
       const data = await response.json()
       setSnapshots(data || [])
     } catch (err) {
       console.error('Error:', err)
+      setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setLoading(false)
     }
@@ -310,39 +310,28 @@ export default function SnapshotsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-10">
+      <Header variant="app" />
+
+      {/* Catalog Title & Controls */}
+      <div className="bg-card border-b border-border sticky top-[73px] z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/images/logo.png"
-                alt="Snappy"
-                width={40}
-                height={40}
-                className="rounded-lg"
-              />
+            <div className="flex items-center gap-3">
               <div>
                 <h1 className="text-xl font-bold text-foreground">Snappy Catalog</h1>
                 <p className="text-sm text-muted-foreground">{snapshots.length} snapshots</p>
               </div>
-            </Link>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={loadSnapshots}
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition"
-                title="Refresh"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-lg transition"
-              >
-                Logout
-              </button>
             </div>
+            <button
+              onClick={loadSnapshots}
+              className="p-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+              title="Refresh"
+              aria-label="Refresh snapshots"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
           </div>
 
           {/* Search & Filters */}
@@ -365,7 +354,7 @@ export default function SnapshotsPage() {
             <div className="flex gap-2">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary text-sm text-foreground"
               >
                 <option value="date">Date</option>
@@ -374,22 +363,24 @@ export default function SnapshotsPage() {
               </select>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="p-2 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground"
+                className="p-3 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                aria-label={sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </button>
               <button
                 onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="p-2 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground"
+                className="p-3 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title={viewMode === 'grid' ? 'Grid view' : 'List view'}
+                aria-label={viewMode === 'grid' ? 'Switch to grid view' : 'Switch to list view'}
               >
                 {viewMode === 'grid' ? '▦' : '☰'}
               </button>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
@@ -397,6 +388,24 @@ export default function SnapshotsPage() {
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
             <p className="text-muted-foreground">Loading snapshots...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center text-3xl mb-4">
+              ⚠️
+            </div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Something went wrong
+            </h2>
+            <p className="text-muted-foreground text-center max-w-md mb-4">
+              {error}
+            </p>
+            <button
+              onClick={loadSnapshots}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition"
+            >
+              Try Again
+            </button>
           </div>
         ) : filteredSnapshots.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -410,11 +419,23 @@ export default function SnapshotsPage() {
             <h2 className="text-xl font-semibold text-foreground mb-2">
               {searchQuery ? 'No matches found' : 'No snapshots yet'}
             </h2>
-            <p className="text-muted-foreground text-center max-w-md">
+            <p className="text-muted-foreground text-center max-w-md mb-4">
               {searchQuery
                 ? 'Try adjusting your search terms'
                 : 'Use the Chrome extension to capture your first snapshot'}
             </p>
+            {!searchQuery && (
+              <a
+                href="/snappy-extension.zip"
+                download
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Extension
+              </a>
+            )}
           </div>
         ) : viewMode === 'grid' ? (
           /* Grid View */

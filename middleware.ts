@@ -1,25 +1,48 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://snappycrawler.com',
+  'https://www.snappycrawler.com',
+  'chrome-extension://', // Allow Chrome extension
+  process.env.NEXT_PUBLIC_APP_URL,
+].filter(Boolean)
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return true // Allow same-origin requests
+  // Allow Chrome extensions
+  if (origin.startsWith('chrome-extension://')) return true
+  return ALLOWED_ORIGINS.some(allowed => origin === allowed || origin.startsWith(allowed as string))
+}
+
 export async function middleware(request: NextRequest) {
+  const origin = request.headers.get('origin')
+
   // Handle CORS for API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
+    const corsOrigin = isAllowedOrigin(origin) ? (origin || '*') : ''
+
     // Handle preflight requests
     if (request.method === 'OPTIONS') {
       return new NextResponse(null, {
         status: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': corsOrigin,
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Credentials': 'true',
         },
       })
     }
 
     const response = NextResponse.next()
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    if (corsOrigin) {
+      response.headers.set('Access-Control-Allow-Origin', corsOrigin)
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+    }
     return response
   }
 
