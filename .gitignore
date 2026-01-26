@@ -56,3 +56,7 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+
+# Claude development files
+CLAUDE.md
+**/CLAUDE.md
