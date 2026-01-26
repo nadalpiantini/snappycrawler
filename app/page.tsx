@@ -104,7 +104,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
-                <a href="/snappy-extension.zip" download>
+                <a href="/snappy-extension.zip?v=2.0.1" download>
                   <Download className="w-4 h-4 mr-1" />
                   Extension
                 </a>
@@ -234,7 +234,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">1. Capture</h3>
               <p className="text-muted-foreground">
-                <a href="/snappy-extension.zip" download className="text-primary hover:underline">Download the extension</a>, load it in Chrome. Enter a URL — Snappy crawls automatically.
+                <a href="/snappy-extension.zip?v=2.0.1" download className="text-primary hover:underline">Download the extension</a>, load it in Chrome. Enter a URL — Snappy crawls automatically.
               </p>
             </div>
 

@@ -81,7 +81,7 @@ export function Header({
               className={buttonClass}
               asChild
             >
-              <a href="/snappy-extension.zip" download>
+              <a href="/snappy-extension.zip?v=2.0.1" download>
                 <Download className="w-4 h-4 mr-1" />
                 <span className="hidden sm:inline">Extension</span>
               </a>
