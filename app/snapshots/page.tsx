@@ -14,6 +14,14 @@ interface SnapshotItem {
   title: string
   created_at: string
   raw_data?: RawSnapshot
+  project_name?: string
+  project_id?: string
+}
+
+interface ProjectGroup {
+  project_id: string | null
+  project_name: string
+  snapshots: SnapshotItem[]
 }
 
 export default function SnapshotsPage() {
@@ -22,6 +30,7 @@ export default function SnapshotsPage() {
 
   const [snapshots, setSnapshots] = useState<SnapshotItem[]>([])
   const [filteredSnapshots, setFilteredSnapshots] = useState<SnapshotItem[]>([])
+  const [groupedSnapshots, setGroupedSnapshots] = useState<ProjectGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedSnapshot, setSelectedSnapshot] = useState<SnapshotItem | null>(null)
@@ -29,6 +38,8 @@ export default function SnapshotsPage() {
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'url'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [groupByProject, setGroupByProject] = useState<boolean>(true)
+  const [selectedProject, setSelectedProject] = useState<string>('all')
 
   type SortOption = 'date' | 'title' | 'url'
 
@@ -38,7 +49,7 @@ export default function SnapshotsPage() {
 
   useEffect(() => {
     filterAndSortSnapshots()
-  }, [snapshots, searchQuery, sortBy, sortOrder])
+  }, [snapshots, searchQuery, sortBy, sortOrder, selectedProject, groupByProject])
 
   async function loadSnapshots() {
     setError(null)
@@ -49,7 +60,18 @@ export default function SnapshotsPage() {
         throw new Error(errorData.error || 'Failed to load snapshots')
       }
       const data = await response.json()
-      setSnapshots(data || [])
+
+      // Normalize data to extract project info
+      const normalizedSnapshots = (data || []).map((snap: any) => ({
+        id: snap.id,
+        url: snap.url,
+        title: snap.title,
+        created_at: snap.created_at,
+        project_id: snap.snappy_project_snapshots?.[0]?.snappy_projects?.id || null,
+        project_name: snap.snappy_project_snapshots?.[0]?.snappy_projects?.name || null
+      }))
+
+      setSnapshots(normalizedSnapshots)
     } catch (err) {
       console.error('Error:', err)
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -75,12 +97,18 @@ export default function SnapshotsPage() {
   function filterAndSortSnapshots() {
     let filtered = [...snapshots]
 
+    // Project filter
+    if (selectedProject !== 'all') {
+      filtered = filtered.filter(s => s.project_id === selectedProject)
+    }
+
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(s =>
         s.title?.toLowerCase().includes(query) ||
-        s.url?.toLowerCase().includes(query)
+        s.url?.toLowerCase().includes(query) ||
+        s.project_name?.toLowerCase().includes(query)
       )
     }
 
@@ -102,6 +130,37 @@ export default function SnapshotsPage() {
     })
 
     setFilteredSnapshots(filtered)
+
+    // Group by project if enabled
+    if (groupByProject) {
+      const groups = filtered.reduce((acc: ProjectGroup[], snapshot) => {
+        const projectName = snapshot.project_name || 'Uncategorized'
+        const existingGroup = acc.find(g => g.project_name === projectName)
+
+        if (existingGroup) {
+          existingGroup.snapshots.push(snapshot)
+        } else {
+          acc.push({
+            project_id: snapshot.project_id || null,
+            project_name: projectName,
+            snapshots: [snapshot]
+          })
+        }
+
+        return acc
+      }, [])
+
+      // Sort groups by project name
+      groups.sort((a, b) => {
+        if (a.project_name === 'Uncategorized') return 1
+        if (b.project_name === 'Uncategorized') return -1
+        return a.project_name.localeCompare(b.project_name)
+      })
+
+      setGroupedSnapshots(groups)
+    } else {
+      setGroupedSnapshots([{ project_id: null, project_name: 'All', snapshots: filtered }])
+    }
   }
 
   function formatDate(dateString: string) {
@@ -142,6 +201,127 @@ export default function SnapshotsPage() {
     if (baseSize < 100) return '~2 KB'
     if (baseSize < 500) return '~5 KB'
     return '~10 KB'
+  }
+
+  function getThumbnail(snapshot: SnapshotItem): string | null {
+    return snapshot.raw_data?.screenshot || null
+  }
+
+  // Snapshot Card Component
+  function SnapshotCard({ snapshot, onClick }: { snapshot: SnapshotItem; onClick: () => void }) {
+    const thumbnail = getThumbnail(snapshot)
+
+    return (
+      <div
+        onClick={onClick}
+        className="group bg-card rounded-xl shadow-sm border-2 border-border hover:border-primary/50 hover:shadow-xl transition-all cursor-pointer overflow-hidden hover:-translate-y-1 duration-300"
+      >
+        {/* Thumbnail */}
+        <div className="relative h-40 bg-gradient-to-br from-muted via-muted/50 to-background overflow-hidden">
+          {thumbnail ? (
+            <img
+              src={thumbnail}
+              alt={snapshot.title || 'Screenshot'}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-5xl opacity-30 group-hover:scale-110 transition-transform duration-300">
+                🌐
+              </div>
+            </div>
+          )}
+          {/* Overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-3 left-3 right-3">
+              <div className="flex items-center justify-between text-white text-xs">
+                <span className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-lg">
+                  View details
+                </span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          {/* Project badge */}
+          {snapshot.project_name && (
+            <div className="absolute top-3 right-3 bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs px-2 py-1 rounded-lg shadow-lg">
+              {snapshot.project_name}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <h3 className="font-semibold text-foreground truncate mb-1 group-hover:text-primary transition-colors">
+            {snapshot.title || 'Untitled'}
+          </h3>
+          <p className="text-sm text-muted-foreground truncate mb-3 flex items-center gap-1">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            {getDomain(snapshot.url)}
+          </p>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {formatRelativeDate(snapshot.created_at)}
+            </span>
+            <span className="bg-muted px-2 py-0.5 rounded">{estimateSize(snapshot)}</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Snapshot List Item Component
+  function SnapshotListItem({ snapshot, onClick }: { snapshot: SnapshotItem; onClick: () => void }) {
+    const thumbnail = getThumbnail(snapshot)
+
+    return (
+      <div
+        onClick={onClick}
+        className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer transition group"
+      >
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={snapshot.title || 'Screenshot'}
+            className="w-20 h-14 rounded-lg object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-20 h-14 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl opacity-50">🌐</span>
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+            {snapshot.title || 'Untitled'}
+          </h3>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="truncate">{getDomain(snapshot.url)}</span>
+            {snapshot.project_name && (
+              <>
+                <span>•</span>
+                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
+                  {snapshot.project_name}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div className="text-sm text-muted-foreground">{formatRelativeDate(snapshot.created_at)}</div>
+          <div className="text-xs text-muted-foreground/60">{estimateSize(snapshot)}</div>
+        </div>
+        <svg className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    )
   }
 
   // Detail View
@@ -315,76 +495,123 @@ export default function SnapshotsPage() {
     )
   }
 
+  // Get unique projects for filter
+  const projects = Array.from(new Set(snapshots.map(s => s.project_name).filter(Boolean)))
+
   // Catalog View
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Header */}
       <Header variant="app" />
 
       {/* Catalog Title & Controls */}
-      <div className="bg-card border-b border-border sticky top-[73px] z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+      <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 sticky top-[73px] z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+                <Image
+                  src="/images/logo.png"
+                  alt="Snappy"
+                  width={32}
+                  height={32}
+                  className="rounded-lg"
+                />
+              </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Snappy Catalog</h1>
-                <p className="text-sm text-muted-foreground">{snapshots.length} snapshots</p>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  Snapshot Gallery
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {snapshots.length} {snapshots.length === 1 ? 'snapshot' : 'snapshots'}
+                  {projects.length > 0 && ` • ${projects.length} ${projects.length === 1 ? 'project' : 'projects'}`}
+                </p>
               </div>
             </div>
             <button
               onClick={loadSnapshots}
-              className="p-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="group p-3 bg-gradient-to-br from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 rounded-xl transition-all hover:scale-105 min-w-[44px] min-h-[44px] flex items-center justify-center border border-primary/20"
               title="Refresh"
               aria-label="Refresh snapshots"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
           </div>
 
           {/* Search & Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 type="text"
-                placeholder="Search by title or URL..."
+                placeholder="Search by title, URL, or project..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition text-foreground placeholder:text-muted-foreground"
+                className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-foreground placeholder:text-muted-foreground shadow-sm"
               />
             </div>
 
-            {/* Sort */}
-            <div className="flex gap-2">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3">
+              {/* Project Filter */}
+              {projects.length > 0 && (
+                <select
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="px-4 py-3 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm cursor-pointer hover:border-primary/50"
+                >
+                  <option value="all">All Projects</option>
+                  {projects.map(project => (
+                    <option key={project} value={project}>{project}</option>
+                  ))}
+                </select>
+              )}
+
+              {/* Sort */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary text-sm text-foreground"
+                className="px-4 py-3 bg-background border-2 border-border focus:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm cursor-pointer hover:border-primary/50"
               >
-                <option value="date">Date</option>
-                <option value="title">Title</option>
-                <option value="url">URL</option>
+                <option value="date">📅 Date</option>
+                <option value="title">📝 Title</option>
+                <option value="url">🔗 URL</option>
               </select>
+
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="p-3 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="px-4 py-3 bg-background border-2 border-border hover:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm hover:bg-primary/5 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
                 aria-label={sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
               >
-                {sortOrder === 'asc' ? '↑' : '↓'}
+                {sortOrder === 'asc' ? '↑ Oldest' : '↓ Newest'}
               </button>
+
               <button
                 onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="p-3 bg-background border border-border hover:bg-muted rounded-lg transition text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="px-4 py-3 bg-background border-2 border-border hover:border-primary rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm hover:bg-primary/5 min-w-[44px] min-h-[44px] flex items-center justify-center gap-2"
                 title={viewMode === 'grid' ? 'Grid view' : 'List view'}
                 aria-label={viewMode === 'grid' ? 'Switch to grid view' : 'Switch to list view'}
               >
-                {viewMode === 'grid' ? '▦' : '☰'}
+                {viewMode === 'grid' ? '⊞ Grid' : '☰ List'}
+              </button>
+
+              <button
+                onClick={() => setGroupByProject(!groupByProject)}
+                className={`px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all text-sm shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center gap-2 ${
+                  groupByProject
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background border-border hover:border-primary text-foreground hover:bg-primary/5'
+                }`}
+                title={groupByProject ? 'Ungroup' : 'Group by project'}
+                aria-label={groupByProject ? 'Show flat list' : 'Group by project'}
+              >
+                📁 Group
               </button>
             </div>
           </div>
@@ -392,52 +619,57 @@ export default function SnapshotsPage() {
       </div>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-            <p className="text-muted-foreground">Loading snapshots...</p>
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-primary/20 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+            </div>
+            <p className="text-muted-foreground mt-4">Loading your snapshots...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center text-3xl mb-4">
+            <div className="w-20 h-20 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-2xl flex items-center justify-center text-4xl mb-6 shadow-lg">
               ⚠️
             </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
               Something went wrong
             </h2>
-            <p className="text-muted-foreground text-center max-w-md mb-4">
+            <p className="text-muted-foreground text-center max-w-md mb-6">
               {error}
             </p>
             <button
               onClick={loadSnapshots}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition"
+              className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:shadow-lg transition-all hover:scale-105"
             >
               Try Again
             </button>
           </div>
         ) : filteredSnapshots.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Image
-              src="/images/logo.png"
-              alt="Snappy"
-              width={80}
-              height={80}
-              className="rounded-xl mb-4 opacity-50"
-            />
-            <h2 className="text-xl font-semibold text-foreground mb-2">
+            <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+              <Image
+                src="/images/logo.png"
+                alt="Snappy"
+                width={64}
+                height={64}
+                className="rounded-xl opacity-50"
+              />
+            </div>
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
               {searchQuery ? 'No matches found' : 'No snapshots yet'}
             </h2>
-            <p className="text-muted-foreground text-center max-w-md mb-4">
+            <p className="text-muted-foreground text-center max-w-md mb-6">
               {searchQuery
-                ? 'Try adjusting your search terms'
-                : 'Use the Chrome extension to capture your first snapshot'}
+                ? 'Try adjusting your search terms or filters'
+                : 'Start capturing web pages with the SnappyCrawler extension'}
             </p>
             {!searchQuery && (
               <a
                 href="/snappy-extension.zip?v=2.0.1"
                 download
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl hover:shadow-lg transition-all hover:scale-105"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -446,60 +678,70 @@ export default function SnapshotsPage() {
               </a>
             )}
           </div>
-        ) : viewMode === 'grid' ? (
-          /* Grid View */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredSnapshots.map((snapshot) => (
-              <div
-                key={snapshot.id}
-                onClick={() => loadSnapshotDetail(snapshot.id)}
-                className="bg-card rounded-xl shadow-sm border border-border hover:shadow-md hover:border-primary/30 cursor-pointer transition group"
-              >
-                {/* Thumbnail placeholder */}
-                <div className="h-32 bg-muted rounded-t-xl flex items-center justify-center border-b border-border">
-                  <div className="text-4xl opacity-50 group-hover:scale-110 transition">🌐</div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-foreground truncate mb-1 group-hover:text-primary transition">
-                    {snapshot.title || 'Untitled'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground truncate mb-3">{getDomain(snapshot.url)}</p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground/60">
-                    <span>{formatRelativeDate(snapshot.created_at)}</span>
-                    <span>{estimateSize(snapshot)}</span>
+        ) : groupByProject ? (
+          /* Grouped View */
+          <div className="space-y-8">
+            {groupedSnapshots.map((group) => (
+              <div key={group.project_id || 'uncategorized'} className="space-y-4">
+                {/* Project Header */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center">
+                    📁
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">{group.project_name}</h2>
+                    <p className="text-sm text-muted-foreground">{group.snapshots.length} {group.snapshots.length === 1 ? 'snapshot' : 'snapshots'}</p>
                   </div>
                 </div>
+
+                {/* Snapshots Grid */}
+                {viewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {group.snapshots.map((snapshot) => (
+                      <SnapshotCard
+                        key={snapshot.id}
+                        snapshot={snapshot}
+                        onClick={() => loadSnapshotDetail(snapshot.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-card rounded-xl shadow-sm border border-border divide-y divide-border overflow-hidden">
+                    {group.snapshots.map((snapshot) => (
+                      <SnapshotListItem
+                        key={snapshot.id}
+                        snapshot={snapshot}
+                        onClick={() => loadSnapshotDetail(snapshot.id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         ) : (
-          /* List View */
-          <div className="bg-card rounded-xl shadow-sm border border-border divide-y divide-border">
-            {filteredSnapshots.map((snapshot) => (
-              <div
-                key={snapshot.id}
-                onClick={() => loadSnapshotDetail(snapshot.id)}
-                className="flex items-center gap-4 p-4 hover:bg-muted cursor-pointer transition"
-              >
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-xl flex-shrink-0">
-                  🌐
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">
-                    {snapshot.title || 'Untitled'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground truncate">{snapshot.url}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="text-sm text-muted-foreground">{formatRelativeDate(snapshot.created_at)}</div>
-                  <div className="text-xs text-muted-foreground/60">{estimateSize(snapshot)}</div>
-                </div>
-                <svg className="w-5 h-5 text-muted-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            ))}
-          </div>
+          /* Flat View */
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredSnapshots.map((snapshot) => (
+                <SnapshotCard
+                  key={snapshot.id}
+                  snapshot={snapshot}
+                  onClick={() => loadSnapshotDetail(snapshot.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-card rounded-xl shadow-sm border border-border divide-y divide-border overflow-hidden">
+              {filteredSnapshots.map((snapshot) => (
+                <SnapshotListItem
+                  key={snapshot.id}
+                  snapshot={snapshot}
+                  onClick={() => loadSnapshotDetail(snapshot.id)}
+                />
+              ))}
+            </div>
+          )
         )}
       </main>
     </div>

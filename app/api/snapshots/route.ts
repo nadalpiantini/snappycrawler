@@ -13,7 +13,7 @@ async function getSupabaseClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: any[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
@@ -58,10 +58,22 @@ export async function GET(request: Request) {
       return NextResponse.json(data)
     }
 
-    // Get user's snapshots (limited to 50)
+    // Get user's snapshots with project information (limited to 50)
     const { data, error } = await supabase
       .from('snappy_snapshots')
-      .select('id, url, title, created_at')
+      .select(`
+        id,
+        url,
+        title,
+        created_at,
+        snappy_project_snapshots (
+          project_id,
+          snappy_projects (
+            id,
+            name
+          )
+        )
+      `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50)
