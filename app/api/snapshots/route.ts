@@ -34,21 +34,25 @@ export async function GET(request: Request) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
+    // TEMPORARY: Disable auth requirement to show all snapshots
+    // TODO: Re-enable when proper user accounts are set up
+    const requireAuth = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true'
+
     if (id) {
-      // Get single snapshot by ID (must belong to user)
-      const { data, error } = await supabase
+      // Get single snapshot by ID
+      let query = supabase
         .from('snappy_snapshots')
         .select('*')
         .eq('id', id)
-        .eq('user_id', user.id)
-        .single()
+
+      if (requireAuth && user) {
+        query = query.eq('user_id', user.id)
+      }
+
+      const { data, error } = await query.single()
 
       if (error) {
         console.error('Error fetching snapshot:', error)
@@ -58,8 +62,8 @@ export async function GET(request: Request) {
       return NextResponse.json(data)
     }
 
-    // Get user's snapshots with project information (limited to 50)
-    const { data, error } = await supabase
+    // Get snapshots with project information (limited to 50)
+    let query = supabase
       .from('snappy_snapshots')
       .select(`
         id,
@@ -74,9 +78,14 @@ export async function GET(request: Request) {
           )
         )
       `)
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50)
+
+    if (requireAuth && user) {
+      query = query.eq('user_id', user.id)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching snapshots:', error)
