@@ -4,6 +4,9 @@ import { analyzeDesign } from '@/lib/design-forensics/analyzer'
 import { analyzeUX } from '@/lib/ux-intelligence/analyzer'
 import { analyzeWireframe } from '@/lib/wireframe-engine/analyzer'
 import { analyzeAIContext } from '@/lib/ai-context/analyzer'
+import { transformHTMLToDesignStyles } from '@/lib/transformers/design'
+import { transformHTMLToUXData } from '@/lib/transformers/ux'
+import { transformHTMLToWireframeInput } from '@/lib/transformers/wireframe'
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const results: Record<string, any> = {}
+    const snap = snapshot as any // Use any to avoid type issues
 
     // Process each requested mode
     for (const mode of modes) {
@@ -43,11 +47,16 @@ export async function POST(request: NextRequest) {
             break
 
           case 'design': {
-            const designResult = await analyzeDesign({
-              html: snapshot.html_raw,
-              text: snapshot.text_array || [],
-              url: snapshot.url
-            })
+            // Transform HTML to CapturedDesignStyles
+            const designStyles = await transformHTMLToDesignStyles(
+              snap.html_raw || '',
+              snap.url
+            )
+
+            const designResult = await analyzeDesign(
+              designStyles,
+              snap.url
+            )
             results.design = designResult
 
             // Update database
@@ -59,11 +68,16 @@ export async function POST(request: NextRequest) {
           }
 
           case 'ux': {
-            const uxResult = analyzeUX({
-              html: snapshot.html_raw,
-              text: snapshot.text_array || [],
-              url: snapshot.url
-            }, snapshot.url)
+            // Transform HTML to CapturedUXData
+            const uxData = transformHTMLToUXData(
+              snap.html_raw || '',
+              snap.url
+            )
+
+            const uxResult = analyzeUX(
+              uxData,
+              snap.url
+            )
             results.ux = uxResult
 
             // Update database
@@ -75,12 +89,16 @@ export async function POST(request: NextRequest) {
           }
 
           case 'wireframe': {
-            const wireframeResult = await analyzeWireframe({
-              html: snapshot.html_raw,
-              text: snapshot.text_array || [],
-              url: snapshot.url,
-              uxAnalysis: snapshot.ux_analysis
-            })
+            // Transform HTML to WireframeInput
+            const wireframeInput = transformHTMLToWireframeInput(
+              snap.html_raw || '',
+              snap.url,
+              snap.ux_analysis
+            )
+
+            const wireframeResult = await analyzeWireframe(
+              wireframeInput
+            )
             results.wireframe = wireframeResult
 
             // Update database
@@ -92,15 +110,18 @@ export async function POST(request: NextRequest) {
           }
 
           case 'ai': {
+            // Use existing analysis results
             const aiResult = await analyzeAIContext({
               snapshot: {
-                html: snapshot.html_raw,
-                text: snapshot.text_array || [],
-                url: snapshot.url,
-                page_type: snapshot.page_type
+                html: snap.html_raw || '',
+                title: snap.title || '',
+                text: snap.text_array || [],
+                ux: [],  // UX events array - empty for database snapshots
+                url: snap.url,
+                page_type: snap.page_type || 'unknown'
               },
-              designTokens: snapshot.design_analysis,
-              uxAnalysis: snapshot.ux_analysis
+              designTokens: snap.design_analysis,
+              uxAnalysis: snap.ux_analysis
             })
             results.ai = aiResult
 

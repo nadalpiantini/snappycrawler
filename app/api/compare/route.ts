@@ -40,13 +40,13 @@ export async function POST(request: NextRequest) {
     // Run comparison analysis
     const comparison = await compareSnapshots({
       snapshots: snapshots.map(s => ({
-        snapshot_id: s.snapshot_id,
+        html: s.html_raw || '',
+        title: s.title || '',
+        text: s.text_array || [],
+        ux: [],  // UX events array - empty for database snapshots
         url: s.url,
         page_type: s.page_type,
-        created_at: s.created_at,
-        design_analysis: s.design_analysis,
-        ux_analysis: s.ux_analysis,
-        wireframe_analysis: s.wireframe_analysis
+        timestamp: s.created_at
       }))
     })
 

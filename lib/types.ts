@@ -7,6 +7,7 @@ export interface RawSnapshot {
   ux: UXEvent[]
   timestamp?: string
   screenshot?: string  // Base64 data URL (jpeg)
+  page_type?: string  // Detected page type (homepage, product, checkout, etc.)
   meta?: {
     viewport?: {
       width: number
