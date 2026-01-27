@@ -1,7 +1,7 @@
 {
-  "name": "snappy-platform",
+  "name": "snappycrawler",
   "version": "1.0.0",
-  "description": "Turn webpages into structured code specifications",
+  "description": "Product Blueprint Interpreter - Transform websites into comprehensible product models",
   "private": true,
   "scripts": {
     "dev": "next dev",
