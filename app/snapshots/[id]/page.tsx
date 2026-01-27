@@ -60,26 +60,6 @@ export default function SnapshotDetailPage() {
     }
   }
 
-  const loadBlueprint = async () => {
-    setBlueprintLoading(true)
-    setBlueprintError(null)
-    try {
-      const baseUrl = window.location.origin
-      const res = await fetch(`${baseUrl}/api/blueprints/${params.id}`)
-
-      if (!res.ok) {
-        throw new Error('Failed to generate blueprint')
-      }
-
-      const data = await res.json()
-      setBlueprint(data.blueprint)
-    } catch (err) {
-      setBlueprintError(err instanceof Error ? err.message : 'Failed to load blueprint')
-    } finally {
-      setBlueprintLoading(false)
-    }
-  }
-
   const runAnalysis = async (mode: string) => {
     try {
       const baseUrl = window.location.origin
@@ -300,47 +280,7 @@ export default function SnapshotDetailPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Blueprint View */}
         {viewMode === 'blueprint' && (
-          <>
-            {blueprintLoading ? (
-              <div className="flex items-center justify-center py-24">
-                <div className="text-center">
-                  <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                  <p className="text-slate-400">Generating product blueprint...</p>
-                  <p className="text-xs text-slate-500 mt-2">Analyzing through 5 cognitive lenses</p>
-                </div>
-              </div>
-            ) : blueprintError ? (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
-                <p className="text-red-400 mb-4">{blueprintError}</p>
-                <button
-                  onClick={loadBlueprint}
-                  className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            ) : blueprint ? (
-              <BlueprintView blueprint={blueprint} />
-            ) : (
-              <div className="flex items-center justify-center py-24">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">🧬</span>
-                  </div>
-                  <h2 className="text-xl font-semibold text-white mb-2">Generate Blueprint</h2>
-                  <p className="text-slate-400 mb-6 max-w-md">
-                    Transform this snapshot into a comprehensible product model using 5 cognitive lenses.
-                  </p>
-                  <button
-                    onClick={loadBlueprint}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Generate Product Blueprint
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+          <BlueprintView snapshotId={params.id as string} />
         )}
 
         {/* Technical View */}

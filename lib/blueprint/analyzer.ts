@@ -25,6 +25,8 @@ import type {
   StealableElement,
   ImprovementSuggestion,
   Insight,
+  LayoutBalance,
+  DesignPersonality,
 } from './types'
 
 // ============================================
@@ -339,7 +341,7 @@ function extractValueProposition(raw: RawSnapshot): string {
 
   // Simple heuristic: first sentence-like text that isn't navigation
   const sentences = text.match(/[A-Z][^.!?]*[.!?]/g) || []
-  if (sentences.length > 0) {
+  if (sentences.length > 0 && sentences[0]) {
     return sentences[0]
   }
 
@@ -689,14 +691,22 @@ function findRedundancies(sections: ConceptualSection[], raw: RawSnapshot): { ty
   return redundancies
 }
 
-function assessLayoutBalance(raw: RawSnapshot): { visualWeight: string; whitespace: string; density: string } {
+function assessLayoutBalance(raw: RawSnapshot): LayoutBalance {
   const interactions = raw.uxData?.interactions.length || 0
   const textBlocks = raw.text.length
 
+  const whitespace: LayoutBalance['whitespace'] =
+    interactions < 20 && textBlocks < 30 ? 'generous' :
+    textBlocks > 50 ? 'cramped' : 'adequate'
+
+  const density: LayoutBalance['density'] =
+    textBlocks < 20 ? 'sparse' :
+    textBlocks > 60 ? 'dense' : 'moderate'
+
   return {
-    visualWeight: 'balanced', // Would need visual analysis for accuracy
-    whitespace: interactions < 20 && textBlocks < 30 ? 'generous' : textBlocks > 50 ? 'cramped' : 'adequate',
-    density: textBlocks < 20 ? 'sparse' : textBlocks > 60 ? 'dense' : 'moderate',
+    visualWeight: 'balanced' as const, // Would need visual analysis for accuracy
+    whitespace,
+    density,
   }
 }
 
@@ -861,12 +871,7 @@ async function analyzeDesignDNA(raw: RawSnapshot): Promise<DesignDNA> {
   }
 }
 
-function assessPersonality(raw: RawSnapshot): {
-  spectrum: Record<string, number>
-  primaryTrait: string
-  secondaryTrait: string
-  description: string
-} {
+function assessPersonality(raw: RawSnapshot): DesignPersonality {
   const colors = raw.designStyles?.colors || []
   const typography = raw.designStyles?.typography || []
   const spacing = raw.designStyles?.spacing || []
