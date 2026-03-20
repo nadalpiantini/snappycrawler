@@ -18,17 +18,6 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   const supabase = getSupabaseClient()
-  // Handle CORS preflight request
-  if (request.method === 'OPTIONS') {
-    return NextResponse.json({}, {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    })
-  }
 
   try {
     const snapshot = await request.json()
@@ -38,10 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid snapshot format. Missing: url, html, or text array' },
         {
-          status: 400,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-          },
+          status: 400
         }
       )
     }
@@ -79,8 +65,6 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to save snapshot')
     }
 
-    // Check if normalization is needed
-    const shouldNormalize = true // Always normalize for now
     const normalized = {
       url: snapshot.url,
       title: snapshot.title || snapshot.url,
@@ -146,10 +130,6 @@ export async function POST(request: NextRequest) {
         spacing_unit: designAnalysis.spacing.unit
       } : null,
       ux_analysis: uxAnalysis ? generateUXSummary(uxAnalysis) : null
-    }, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
     })
 
   } catch (error) {
@@ -157,10 +137,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       {
-        status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
+        status: 500
       }
     )
   }

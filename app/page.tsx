@@ -6,9 +6,8 @@ import Link from 'next/link'
 import { SnapshotUploader } from '@/components/SnapshotUploader'
 import { SnapshotViewer } from '@/components/SnapshotViewer'
 import { RawSnapshot } from '@/lib/types'
-import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download, User, FolderOpen, Menu, X, Github, Twitter, Mail, FileText, Shield, HelpCircle, Upload, Check, AlertCircle, Copy, Route, Bot, Target, ChevronDown } from 'lucide-react'
+import { ArrowDown, Chrome, Code2, Sparkles, Globe, Zap, Layers, Download, Menu, X, Github, Twitter, Mail, Shield, HelpCircle, Copy, Route, Bot, Target, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/browser'
 import { Header } from '@/components/Header'
 
 const HERO_VIDEOS = [
@@ -20,25 +19,14 @@ const HERO_VIDEOS = [
 export default function HomePage() {
   const [snapshot, setSnapshot] = useState<RawSnapshot | null>(null)
   const [videoSrc, setVideoSrc] = useState<string>('')
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
   const [activeSection, setActiveSection] = useState<string>('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
-  const [isUploading, setIsUploading] = useState<boolean>(false)
   const [faqOpen, setFaqOpen] = useState<number | null>(null)
-
-  const supabase = createClient()
 
   useEffect(() => {
     // Random video on each page load
     const randomIndex = Math.floor(Math.random() * HERO_VIDEOS.length)
     setVideoSrc(HERO_VIDEOS[randomIndex])
-
-    // Check auth state
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setIsLoggedIn(!!session)
-    }
-    checkAuth()
 
     // Scroll spy for active section
     const handleScroll = () => {
@@ -80,12 +68,7 @@ export default function HomePage() {
     setFaqOpen(faqOpen === index ? null : index)
   }
 
-  const handleUploadStart = () => {
-    setIsUploading(true)
-  }
-
   const handleUploadComplete = (data: RawSnapshot) => {
-    setIsUploading(false)
     setSnapshot(data)
   }
 
@@ -131,46 +114,8 @@ export default function HomePage() {
         <div className="video-overlay" />
 
         <div className="hero-content min-h-screen flex flex-col">
-          {/* Navigation */}
-          <header className="container mx-auto px-4 py-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Image
-                src="/images/logo.png"
-                alt="Snappy"
-                width={240}
-                height={240}
-                className="rounded-xl w-20 h-20 sm:w-28 sm:h-28 md:w-[180px] md:h-[180px] lg:w-[240px] lg:h-[240px]"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-white" asChild>
-                <a href="/snappy-extension.zip?v=2.0.1" download>
-                  <Download className="w-4 h-4 mr-1" />
-                  Download Extension
-                </a>
-              </Button>
-              {isLoggedIn === null ? (
-                <div className="w-28 h-8 bg-white/10 rounded-md animate-pulse" />
-              ) : isLoggedIn ? (
-                <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
-                  <Link href="/snapshots">
-                    <FolderOpen className="w-4 h-4 mr-1" />
-                    My Snapshots
-                  </Link>
-                </Button>
-              ) : (
-                <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" asChild>
-                  <Link href="/login">
-                    <User className="w-4 h-4 mr-1" />
-                    Login
-                  </Link>
-                </Button>
-              )}
-              <Button size="sm" variant="outline" className="text-white border-white/30 hover:bg-white/10" onClick={scrollToUpload}>
-                Try Now
-              </Button>
-            </div>
-          </header>
+          {/* Navigation — uses Header component instead of inline duplicate */}
+          <Header variant="landing" showExtension showTryNow onTryNow={scrollToUpload} />
 
           {/* Hero Content */}
           <div className="flex-1 flex items-center justify-center px-4">
@@ -352,7 +297,6 @@ export default function HomePage() {
           </p>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Step 1 */}
             <div className="text-center p-8 rounded-xl bg-background border border-border">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Chrome className="w-8 h-8 text-primary" />
@@ -363,7 +307,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Step 2 */}
             <div className="text-center p-8 rounded-xl bg-background border border-border">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Code2 className="w-8 h-8 text-primary" />
@@ -374,7 +317,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Step 3 */}
             <div className="text-center p-8 rounded-xl bg-background border border-border">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Sparkles className="w-8 h-8 text-primary" />

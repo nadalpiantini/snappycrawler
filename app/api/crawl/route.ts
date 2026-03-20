@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Use service role key to bypass RLS for writing
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy initialization to avoid build-time errors
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase credentials')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
+}
 
 // System user UUID for anonymous/crawler snapshots
 const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000'
 
 export async function POST(request: Request) {
   try {
+    const supabase = getSupabaseClient()
     const snapshot = await request.json()
 
     if (!snapshot.url) {

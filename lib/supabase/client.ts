@@ -39,7 +39,6 @@ export class SnapshotService {
 
       return data || []
     } catch (error) {
-      console.error('Error fetching snapshots:', error)
       return []
     }
   }
@@ -59,7 +58,6 @@ export class SnapshotService {
 
       return data
     } catch (error) {
-      console.error('Error fetching snapshot:', error)
       return null
     }
   }
@@ -88,7 +86,6 @@ export class SnapshotService {
 
       return data
     } catch (error) {
-      console.error('Error creating snapshot:', error)
       return null
     }
   }
@@ -109,7 +106,6 @@ export class SnapshotService {
 
       return data
     } catch (error) {
-      console.error('Error updating snapshot:', error)
       return null
     }
   }
@@ -128,7 +124,6 @@ export class SnapshotService {
 
       return true
     } catch (error) {
-      console.error('Error deleting snapshot:', error)
       return false
     }
   }
@@ -148,7 +143,6 @@ export class SnapshotService {
 
       return data?.normalized_data || null
     } catch (error) {
-      console.error('Error fetching normalized snapshot:', error)
       return null
     }
   }
@@ -170,11 +164,7 @@ export class SnapshotService {
 
       return true
     } catch (error) {
-      console.error('Error saving normalized snapshot:', error)
       return false
     }
   }
 }
-
-// Export singleton instance
-export const snapshotService = new SnapshotService()

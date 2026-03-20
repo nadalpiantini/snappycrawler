@@ -14,7 +14,7 @@ async function getSupabaseClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet: any[]) {
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
@@ -38,8 +38,7 @@ function getServiceRoleClient() {
 
 export async function GET(request: Request) {
   try {
-    // TEMPORARY: Disable auth requirement to show all snapshots
-    // TODO: Re-enable when proper user accounts are set up
+    // Auth requirement controlled via NEXT_PUBLIC_ENABLE_AUTH env var
     const requireAuth = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true'
 
     // Use service role when auth is disabled to bypass RLS

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
 import { RawSnapshot } from '@/lib/types'
@@ -55,6 +55,17 @@ interface ProjectGroup {
   snapshots: SnapshotItem[]
 }
 
+interface SnapshotApiResponse {
+  id: string
+  url: string
+  title: string
+  created_at: string
+  snappy_project_snapshots?: Array<{
+    project_id?: string
+    snappy_projects?: { id: string; name: string } | null
+  }>
+}
+
 export default function SnapshotsPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -75,33 +86,21 @@ export default function SnapshotsPage() {
 
   type SortOption = 'date' | 'title' | 'url'
 
-  useEffect(() => {
-    loadSnapshots()
-  }, [])
-
-  useEffect(() => {
-    filterAndSortSnapshots()
-  }, [snapshots, searchQuery, sortBy, sortOrder, selectedProject, groupByProject])
-
-  async function loadSnapshots() {
+  const loadSnapshots = useCallback(async () => {
     setError(null)
     setIsRefreshing(true)
     try {
-      console.log('🔍 Fetching snapshots from API...')
       const response = await fetch('/api/snapshots')
-      console.log('📡 API Response status:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('❌ API Error:', errorData)
         throw new Error(errorData.error || 'Failed to load snapshots')
       }
 
       const data = await response.json()
-      console.log('✅ Snapshots loaded:', data?.length || 0, 'items')
 
       // Normalize data to extract project info
-      const normalizedSnapshots = (data || []).map((snap: any) => ({
+      const normalizedSnapshots = (data || []).map((snap: SnapshotApiResponse) => ({
         id: snap.id,
         url: snap.url,
         title: snap.title,
@@ -112,30 +111,30 @@ export default function SnapshotsPage() {
 
       setSnapshots(normalizedSnapshots)
     } catch (err) {
-      console.error('❌ Error:', err)
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setLoading(false)
       setIsRefreshing(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadSnapshots()
+  }, [loadSnapshots])
 
   async function loadSnapshotDetail(id: string) {
     try {
-      console.log('🔍 Loading snapshot detail:', id)
       const response = await fetch(`/api/snapshots?id=${id}`)
       if (!response.ok) {
-        console.error('❌ Error loading snapshot:', response.statusText)
         return
       }
       const data = await response.json()
       setSelectedSnapshot(data)
     } catch (err) {
-      console.error('❌ Error:', err)
     }
   }
 
-  function filterAndSortSnapshots() {
+  const filterAndSortSnapshots = useCallback(() => {
     let filtered = [...snapshots]
 
     // Project filter
@@ -202,7 +201,11 @@ export default function SnapshotsPage() {
     } else {
       setGroupedSnapshots([{ project_id: null, project_name: 'All', snapshots: filtered }])
     }
-  }
+  }, [snapshots, searchQuery, sortBy, sortOrder, selectedProject, groupByProject])
+
+  useEffect(() => {
+    filterAndSortSnapshots()
+  }, [filterAndSortSnapshots])
 
   function formatDate(dateString: string) {
     const date = new Date(dateString)
